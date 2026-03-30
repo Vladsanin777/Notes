@@ -21,15 +21,21 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="@id/titlebar"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             android:textSize="48sp"
             android:text="Notes"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintRight_toRightOf="@id/titlebar"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:onClick="addNote"
             android:text="Add"
-            android:textSize="32sp"/>
+            android:textSize="32sp"
+            tools:ignore="OnClick" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
