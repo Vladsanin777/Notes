@@ -4,13 +4,14 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.time.Instant;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class Note {
+public class Note implements Serializable {
     String m_label;
     String m_text;
     Instant m_time;

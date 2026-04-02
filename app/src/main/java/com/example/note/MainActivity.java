@@ -3,10 +3,13 @@ package com.example.note;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Space;
 import android.widget.TextView;
@@ -33,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
 
         m_notes = findViewById(R.id.notes);
         m_notesContext = m_notes.getContext();
+    }
+
+    public void onClickAddNotet(View view) {
+        Intent intent = new Intent(MainActivity.this, EditNote.class);
+        intent.putExtra(Note.class.getSimpleName(), new Note());
+        startActivity(intent);
     }
 
     public void addNote(View view) {
