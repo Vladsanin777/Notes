@@ -12,31 +12,30 @@ import java.time.Instant;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class Note implements Serializable {
-    String m_label;
-    String m_text;
-    Instant m_time;
-    boolean m_is_edited;
-    boolean m_is_deleted;
-    boolean m_is_rename;
-    int m_id;
-    static int id_note_last;
-    static ZoneId deviceZone = ZoneId.systemDefault();
-    static void set_id(int id_last) {
-        id_note_last = id_last;
-    }
-    public Note(String label, String text) {
-        m_id = ++id_note_last;
-        m_label = label;
-        m_text = text;
+    private static final String ARCIVE_NAME = "Notes.zip";
+    private static final ZoneId deviceZone = ZoneId.systemDefault();
+    private String m_hash_parent;
+    private String m_hash;
+    private String m_name;
+    private String m_context;
+    private Instant m_time;
+    private boolean m_is_edited;
+    private boolean m_is_deleted;
+    private boolean m_is_rename;
+
+    public Note(String name, String context) {
+        m_name = name;
+        m_context = context;
         m_time = now();
         m_is_edited = false;
         m_is_deleted = false;
         m_is_rename = false;
+        serialize();
     }
-    private Note(int id, String label, String text,
+    private Note(String name, String context,
                  Instant time, boolean is_edited,
                  boolean is_deleted, boolean is_rename) {
-        m_id = id; m_label = label; m_text = text;
+        m_name = name; m_context = context;
         m_time = time; m_is_edited = is_edited;
         m_is_deleted = is_deleted; m_is_rename = is_rename;
     }
@@ -44,13 +43,10 @@ public class Note implements Serializable {
         return new Note("jk", "kl");
     }
     public String getLabel() {
-        return m_label;
+        return m_context;
     }
     public String getText() {
-        return m_text;
-    }
-    public int getIdNote() {
-        return m_id;
+        return m_context;
     }
     public ZonedDateTime getTime() {
         return m_time.atZone(deviceZone);
@@ -64,21 +60,32 @@ public class Note implements Serializable {
     public boolean isDeleted() {
         return m_is_deleted;
     }
-    public void setText(String text) {
+    public void edit(String newContext) {
         m_is_edited = true;
         m_time = now();
-        m_text = text;
+        m_context = newContext;
+        serialize();
     }
-    public void setLabel(String label) {
+    public void rename(String name) {
         m_is_rename = true;
-        m_label = label;
+        m_time = now();
+        m_name = name;
+        serialize();
     }
+
     public void delete() {
         m_is_deleted = true;
+        serialize();
     }
-    public void deleteForce() {
+
+    public void deleteHistory() {
 
     }
+
+    public void deleteWhitHistory() {
+
+    }
+
     private Instant now() {
         return Instant.now();
     }
