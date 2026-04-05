@@ -1,11 +1,18 @@
 package com.example.note;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -16,15 +23,27 @@ import android.widget.TextView;
 
 import com.example.note.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
+public class MainActivity extends AppCompatActivity {
     // Used to load the 'note' library on application startup.
     static {
         System.loadLibrary("note");
     }
 
+    private ArrayList<Note> m_notes;
+    private final ActivityResultLauncher<Intent> addNoteLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> handleNoteResult(result)
+    );
+
     private ActivityMainBinding m_binding;
-    private LinearLayout m_notes;
+    private LinearLayout m_notesLayout;
     private Context m_notesContext;
 
     @Override
@@ -34,45 +53,72 @@ public class MainActivity extends AppCompatActivity {
         m_binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(m_binding.getRoot());
 
-        m_notes = findViewById(R.id.notes);
-        m_notesContext = m_notes.getContext();
+        m_notesLayout = findViewById(R.id.notes);
+        m_notesContext = m_notesLayout.getContext();
+
+        Note.setContext(getApplicationContext());
+
+        m_notes = new ArrayList<Note>();
+
+        String[] files = fileList();
+
+        for (String hashNote : files) {
+            Note note = Note.deserialize(hashNote);
+            addNote(note);
+        }
+
     }
 
-    public void onClickAddNotet(View view) {
+    public void onClickAddNote(View view) {
         Intent intent = new Intent(MainActivity.this, EditNote.class);
-        intent.putExtra(Note.class.getSimpleName(), new Note());
-        startActivity(intent);
+        addNoteLauncher.launch(intent);
+
     }
 
-    public void addNote(View view) {
-        LinearLayout note = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
+    private void handleNoteResult(ActivityResult result) {
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+            Intent data = result.getData();
 
-        m_notes.addView(note);
+            String name = data.getStringExtra("name_note");
+            String content = data.getStringExtra("content_note");
 
-        Context noteContext = note.getContext();
+            Note note = new Note(name, content);
+            addNote(note);
+        }
+    }
 
-        note.addView(createTextView(noteContext, "label", 32));
 
-        note.addView(createVertacalSpace(note.getContext(), 15));
+    public void addNote(Note note) {
+        m_notes.add(note);
 
-        note.addView(createTextView(noteContext, "context", 24));
+        LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
+
+        m_notesLayout.addView(mainLayout);
+
+        Context noteContext = mainLayout.getContext();
+
+        mainLayout.addView(createTextView(noteContext, note.getName(), 32, 2));
+
+        mainLayout.addView(createVertacalSpace(mainLayout.getContext(), 15));
+
+        mainLayout.addView(createTextView(noteContext, note.getContent(), 24, 6));
 
         LinearLayout footerLayout = createLinearLayoutFooter(
-                note.getContext(), LinearLayout.HORIZONTAL);
+                mainLayout.getContext(), LinearLayout.HORIZONTAL);
 
-        note.addView(footerLayout);
+        mainLayout.addView(footerLayout);
 
         Context footerLayoutContext = footerLayout.getContext();
 
-        footerLayout.addView(createTextView(footerLayoutContext, "rename", 12));
+        footerLayout.addView(createTextView(footerLayoutContext, "renamed", 12, note.isRenamed()));
 
         footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
-        footerLayout.addView(createTextView(footerLayoutContext, "edited", 12));
+        footerLayout.addView(createTextView(footerLayoutContext, "edited", 12, note.isEdited()));
 
         footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
-        footerLayout.addView(createTextView(footerLayoutContext, "12:00 AM", 12));
+        footerLayout.addView(createTextView(footerLayoutContext, note.getTime().toString(), 12));
     }
 
     private LinearLayout createLinearLayoutFooter(Context parent, int orientation) {
@@ -93,13 +139,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private TextView createTextView(Context parent, String text, int textSize) {
-        TextView tv = new TextView(parent);
-        tv.setLayoutParams(new LinearLayout.LayoutParams(
+        TextView textView = new TextView(parent);
+        textView.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.MATCH_PARENT));
-        tv.setTextSize(textSize);
-        tv.setText(text);
-        return tv;
+        textView.setTextSize(textSize);
+        textView.setText(text);
+        return textView;
+    }
+
+    private TextView createTextView(Context parent, String text, int textSize, boolean isVisibility) {
+        TextView textView = createTextView(parent, text, textSize);
+        textView.setVisibility(isVisibility ? View.VISIBLE : View.GONE);
+        return textView;
+    }
+
+    private TextView createTextView(Context parent, String text, int textSize, int countLine) {
+        TextView textView = createTextView(parent, text, textSize);
+
+        textView.setGravity(Gravity.TOP | Gravity.START);
+
+        textView.setMaxLines(countLine);
+
+        textView.setMovementMethod(new ScrollingMovementMethod());
+
+        textView.setVerticalScrollBarEnabled(true);
+        return textView;
     }
 
     private Space createVertacalSpace(Context parent, int dp) {
