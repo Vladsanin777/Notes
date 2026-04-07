@@ -5,19 +5,23 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Space;
 import android.widget.TextView;
 
@@ -30,13 +34,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
     // Used to load the 'note' library on application startup.
     static {
         System.loadLibrary("note");
     }
 
-    private ArrayList<Note> m_notes;
     private final ActivityResultLauncher<Intent> addNoteLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> handleNoteResult(result)
@@ -58,42 +62,78 @@ public class MainActivity extends AppCompatActivity {
 
         Note.setContext(getApplicationContext());
 
-        m_notes = new ArrayList<Note>();
+        Note.INIT();
 
-        String[] files = fileList();
-
-        for (String hashNote : files) {
-            Note note = Note.deserialize(hashNote);
-            addNote(note);
+        int count = Note.getCount();
+        for (int i = 0; i < count; i++) {
+            addNote(Note.getNote(i));
         }
+    }
 
+    public void onClickEditNote(View view) {
+        LinearLayout noteLayout = (LinearLayout) view;
+        Note note = (Note) noteLayout.getTag();
+        Intent intent = new Intent(MainActivity.this, EditNote.class);
+        intent.putExtra("label", "Edit note");
+        intent.putExtra("id_note", note.getId());
+        addNoteLauncher.launch(intent);
+    }
+
+    public void onClickDeleteNote(View view) {
+        LinearLayout noteLayout = (LinearLayout) view;
+        Note note = (Note) noteLayout.getTag();
+
+        note.delete();
+
+        m_notesLayout.removeView(noteLayout);
     }
 
     public void onClickAddNote(View view) {
         Intent intent = new Intent(MainActivity.this, EditNote.class);
+        intent.putExtra("label", "New note");
         addNoteLauncher.launch(intent);
-
     }
 
     private void handleNoteResult(ActivityResult result) {
         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
+            int idNote = data.getIntExtra("id_note", -1);
+
             String name = data.getStringExtra("name_note");
             String content = data.getStringExtra("content_note");
 
-            Note note = new Note(name, content);
+            Note note;
+            if (idNote != -1) {
+                Note noteOld = Note.getNote(idNote);
+
+                note = new Note(name, content, noteOld);
+
+                View view = m_notesLayout.findViewWithTag(noteOld);
+
+                m_notesLayout.removeView(view);
+            } else {
+                note = new Note(name, content);
+            }
+
             addNote(note);
         }
     }
 
-
     public void addNote(Note note) {
-        m_notes.add(note);
+        if (note.isDeleted())
+            return;
 
         LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
 
-        m_notesLayout.addView(mainLayout);
+        mainLayout.setClickable(true);
+        mainLayout.setFocusable(true);
+
+        mainLayout.setTag(note);
+
+        mainLayout.setOnLongClickListener(this::onLongClickAddNote);
+
+        m_notesLayout.addView(mainLayout, 0);
 
         Context noteContext = mainLayout.getContext();
 
@@ -119,6 +159,36 @@ public class MainActivity extends AppCompatActivity {
         footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
         footerLayout.addView(createTextView(footerLayoutContext, note.getTime().toString(), 12));
+    }
+
+    public boolean onLongClickAddNote(View view) {
+        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+
+        popup.getMenu().add(0, 1, 0, "Edit");
+        popup.getMenu().add(0, 2, 1, "Delete");
+        popup.getMenu().add(0, 3, 2, "Create");
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: {
+                    onClickEditNote(view);
+                    return true;
+                }
+                case 2: {
+                    onClickDeleteNote(view);
+                    return true;
+                }
+                case 3:
+                    onClickAddNote(view);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+
+        popup.show();
+
+        return true;
     }
 
     private LinearLayout createLinearLayoutFooter(Context parent, int orientation) {

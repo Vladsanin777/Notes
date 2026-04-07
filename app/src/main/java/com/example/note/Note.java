@@ -1,12 +1,15 @@
 package com.example.note;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,24 +21,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class Note implements Parcelable {
-    public static final Parcelable.Creator<Note> CREATOR = new Parcelable.Creator<Note>() {
-        @Override
-        public Note createFromParcel(Parcel in) {
-            return new Note(in);
-        }
-
-        @Override
-        public Note[] newArray(int size) {
-            return new Note[size];
-        }
-    };
-    private static final ZoneId deviceZone = ZoneId.systemDefault();
+public class Note {
+    private static final String HEADS = "HEADS_NOTE";
+    private static final String PREFIX = "note:";
+    private final static ArrayList<Note> m_notes = new ArrayList<Note>();
+    private static final ZoneId m_deviceZone = ZoneId.systemDefault();
     private static Context m_context;
+    private int m_indexNote;
     private String m_parentHash;
     private String m_currentHash;
     private String m_childHash;
@@ -50,7 +50,38 @@ public class Note implements Parcelable {
     private boolean m_isEditedHistory;
     private boolean m_isDeleted;
 
+    public static void INIT() {
+        SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
+
+        Set<String> savedHeads = prefs.getStringSet(HEADS, null);
+
+        if (savedHeads != null) {
+            for (String head : savedHeads) {
+                Log.d("hash", head);
+                deserialize(head);
+            }
+        }
+    }
+
+    private static void updateHeads() {
+        Log.d("debug", "updateHeads вызвана. Размер m_notes: " + m_notes.size());
+
+        SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        Set<String> headsToSave = new HashSet<>();
+
+        for (int i = 0; i < m_notes.size(); i++) {
+            Log.d("head", PREFIX + m_notes.get(i).m_currentHash);
+            headsToSave.add(PREFIX + m_notes.get(i).m_currentHash);
+        }
+
+        editor.putStringSet(HEADS, headsToSave);
+        editor.apply();
+    }
+
     public Note(String name, String content) {
+        Log.d("debug", "updateHeads вызвана. Размер m_notes: " + m_notes.size());
         m_name = name;
         m_content = content;
         m_time = now();
@@ -61,6 +92,9 @@ public class Note implements Parcelable {
         m_isDeleted = false;
         updateHash();
         serialize();
+        m_indexNote = m_notes.size();
+        m_notes.add(this);
+        updateHeads();
     }
 
     public Note(String name, String content, Note parent) {
@@ -78,41 +112,59 @@ public class Note implements Parcelable {
         parent.m_childHash = m_currentHash;
         serialize();
         parent.serialize();
+        if (parent == null) {
+            m_indexNote = m_notes.size();
+            m_notes.add(this);
+        } else {
+            parent.m_child = this;
+            m_indexNote = parent.m_indexNote;
+            m_notes.set(parent.m_indexNote, this);
+        }
+        updateHeads();
     }
 
-    protected Note(Parcel in) {
-        m_parentHash = in.readString();
-        //m_hash = in.readString();
-        m_childHash = in.readString();
-        m_name = in.readString();
-        m_content = in.readString();
-        long millis = in.readLong();
+    protected Note(SharedPreferences in, Note child) {
+        m_parentHash = in.getString("parentHash", null);
+        m_childHash = in.getString("childHash", null);
+        m_child = child;
+        m_name = in.getString("name", null);
+        m_content = in.getString("content", null);
+        long millis = in.getLong("time", -1);
         m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
-        m_isRenamed = in.readByte() != 0;
-        m_isRenamedHistory = in.readByte() != 0;
-        m_isEdited = in.readByte() != 0;
-        m_isEditedHistory = in.readByte() != 0;
-        m_isDeleted = in.readByte() != 0;
+        m_isRenamed = in.getBoolean("renamed", false);
+        m_isRenamedHistory = in.getBoolean("renameHistory", false);
+        m_isEdited = in.getBoolean("edited", false);
+        m_isEditedHistory = in.getBoolean("editedHistory", false);
+        m_isDeleted = in.getBoolean("deleted", false);
+        updateHash();
+        if (child == null) {
+            m_indexNote = m_notes.size();
+            m_notes.add(this);
+        } else {
+            child.m_parent = this;
+            m_indexNote = child.m_indexNote;
+        }
+        if (m_parentHash != null)
+            deserialize(PREFIX + m_parentHash, this);
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(m_parentHash);
-        //dest.writeString(m_hash);
-        dest.writeString(m_childHash);
-        dest.writeString(m_name);
-        dest.writeString(m_content);
-        dest.writeLong(m_time != null ? m_time.toEpochMilli() : -1);
-        dest.writeByte((byte) (m_isRenamed ? 1 : 0));
-        dest.writeByte((byte) (m_isRenamedHistory ? 1 : 0));
-        dest.writeByte((byte) (m_isEdited ? 1 : 0));
-        dest.writeByte((byte) (m_isEditedHistory ? 1 : 0));
-        dest.writeByte((byte) (m_isDeleted ? 1 : 0));
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
+    protected Note(SharedPreferences in) {
+        m_parentHash = in.getString("parentHash", null);
+        m_childHash = in.getString("childHash", null);
+        m_name = in.getString("name", null);
+        m_content = in.getString("content", null);
+        long millis = in.getLong("time", -1);
+        m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
+        m_isRenamed = in.getBoolean("renamed", false);
+        m_isRenamedHistory = in.getBoolean("renameHistory", false);
+        m_isEdited = in.getBoolean("edited", false);
+        m_isEditedHistory = in.getBoolean("editedHistory", false);
+        m_isDeleted = in.getBoolean("deleted", false);
+        updateHash();
+        m_indexNote = m_notes.size();
+        m_notes.add(this);
+        if (m_parentHash != null)
+            deserialize(PREFIX + m_parentHash, this);
     }
 
     private Note(String hashParent, String hash, String hashChild,
@@ -165,7 +217,7 @@ public class Note implements Parcelable {
 
     private void updateHash() {
         String hash = generateHash();
-        if (hash == null) {
+        if (hash != null) {
             m_currentHash = hash;
         }
     }
@@ -183,42 +235,55 @@ public class Note implements Parcelable {
     }
 
     private void serialize() {
-        if (m_context == null || m_currentHash == null) return;
+        if (m_currentHash == null) return;
 
-        Parcel parcel = Parcel.obtain();
+        SharedPreferences prefs = m_context.getSharedPreferences(PREFIX + m_currentHash, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
 
-        writeToParcel(parcel, 0);
+        editor.putString("parentHash", m_parentHash);
+        editor.putString("childHash", m_childHash);
+        editor.putString("name", m_name);
+        editor.putString("content", m_content);
+        editor.putLong("time", m_time != null ? m_time.toEpochMilli() : -1);
+        editor.putBoolean("renamed", m_isRenamed);
+        editor.putBoolean("renamedHistory", m_isRenamedHistory);
+        editor.putBoolean("edited", m_isEdited);
+        editor.putBoolean("editedHistory", m_isEditedHistory);
+        editor.putBoolean("deleted", m_isDeleted);
 
-        byte[] bytes = parcel.marshall();
-
-        parcel.recycle();
-
-        try (FileOutputStream fos = m_context.openFileOutput(m_currentHash, Context.MODE_PRIVATE)) {
-            fos.write(bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        editor.apply();
     }
 
     public static Note deserialize(String fileName) {
-        try (FileInputStream fis = m_context.openFileInput(fileName)) {
-            byte[] bytes = new byte[fis.available()];
-            fis.read(bytes);
-
-            Parcel parcel = Parcel.obtain();
-            parcel.unmarshall(bytes, 0, bytes.length);
-
-            parcel.setDataPosition(0);
-
-            Note note = Note.CREATOR.createFromParcel(parcel);
-
-            parcel.recycle();
-
-            return note;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!fileName.startsWith(PREFIX))
             return null;
-        }
+        SharedPreferences prefs = m_context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
+
+        Note note = new Note(prefs);
+
+        return note;
+    }
+
+    private static Note deserialize(String fileName, Note child) {
+        if (!fileName.startsWith(PREFIX))
+            return null;
+        SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
+
+        Note note = new Note(prefs, child);
+
+        return note;
+    }
+
+    public static int getCount() {
+        return m_notes.size();
+    }
+
+    public static Note getNote(int i) {
+        return m_notes.get(i);
+    }
+
+    public int getId() {
+        return m_indexNote;
     }
 
     public String getName() {
@@ -228,7 +293,7 @@ public class Note implements Parcelable {
         return m_content;
     }
     public ZonedDateTime getTime() {
-        return m_time.atZone(deviceZone);
+        return m_time.atZone(m_deviceZone);
     }
     public boolean isRenamedCurrent() {
         return m_isRenamed;
