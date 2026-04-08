@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.BoringLayout;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -33,14 +34,16 @@ public class Note {
     private static final String HEADS = "HEADS_NOTE";
     private static final String PREFIX = "note:";
     private final static ArrayList<Note> m_notes = new ArrayList<Note>();
+    private final static ArrayList<Note> m_notesTemplate = new ArrayList<Note>();
+    private final static ArrayList<Note> m_notesDeleted = new ArrayList<Note>();
     private static final ZoneId m_deviceZone = ZoneId.systemDefault();
     private static Context m_context;
     private int m_indexNote;
     private String m_parentHash;
     private String m_currentHash;
-    private String m_childHash;
+    private Set<String> m_childsHashs;
     private Note m_parent;
-    private Note m_child;
+    private final Set<Note> m_childs = new HashSet<Note>();
     private String m_name;
     private String m_content;
     private Instant m_time;
@@ -49,6 +52,7 @@ public class Note {
     private boolean m_isEdited;
     private boolean m_isEditedHistory;
     private boolean m_isDeleted;
+    private boolean m_isTemplate;
 
     public static void INIT() {
         SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
@@ -97,7 +101,7 @@ public class Note {
         updateHeads();
     }
 
-    public Note(String name, String content, Note parent) {
+    public Note(String name, String content, Note parent, Boolean template) {
         m_parentHash = parent.m_currentHash;
         m_parent = parent;
         m_name = name;
@@ -108,38 +112,35 @@ public class Note {
         m_isEdited = isEdited(parent);
         m_isEditedHistory = parent.isEdited();
         m_isDeleted = false;
+        m_isTemplate = template;
         updateHash();
-        parent.m_childHash = m_currentHash;
         serialize();
         parent.serialize();
         if (parent == null) {
             m_indexNote = m_notes.size();
             m_notes.add(this);
         } else {
-            parent.m_child = this;
             m_indexNote = parent.m_indexNote;
             m_notes.set(parent.m_indexNote, this);
+            if (parent.m_childsHashs.size() != 0)
+                parent.m_isTemplate = true;
+            parent.m_childsHashs.add(m_currentHash);
+            parent.m_childs.add(this);
         }
         updateHeads();
     }
 
     protected Note(SharedPreferences in, Note child) {
-        m_parentHash = in.getString("parentHash", null);
-        m_childHash = in.getString("childHash", null);
-        m_child = child;
-        m_name = in.getString("name", null);
-        m_content = in.getString("content", null);
-        long millis = in.getLong("time", -1);
-        m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
-        m_isRenamed = in.getBoolean("renamed", false);
-        m_isRenamedHistory = in.getBoolean("renameHistory", false);
-        m_isEdited = in.getBoolean("edited", false);
-        m_isEditedHistory = in.getBoolean("editedHistory", false);
-        m_isDeleted = in.getBoolean("deleted", false);
-        updateHash();
+        parce(in);
+
         if (child == null) {
-            m_indexNote = m_notes.size();
-            m_notes.add(this);
+            if (isDeleted()) {
+                m_indexNote = m_notesDeleted.size();
+                m_notesDeleted.add(this);
+            } else {
+                m_indexNote = m_notes.size();
+                m_notes.add(this);
+            }
         } else {
             child.m_parent = this;
             m_indexNote = child.m_indexNote;
@@ -149,20 +150,10 @@ public class Note {
     }
 
     protected Note(SharedPreferences in) {
-        m_parentHash = in.getString("parentHash", null);
-        m_childHash = in.getString("childHash", null);
-        m_name = in.getString("name", null);
-        m_content = in.getString("content", null);
-        long millis = in.getLong("time", -1);
-        m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
-        m_isRenamed = in.getBoolean("renamed", false);
-        m_isRenamedHistory = in.getBoolean("renameHistory", false);
-        m_isEdited = in.getBoolean("edited", false);
-        m_isEditedHistory = in.getBoolean("editedHistory", false);
-        m_isDeleted = in.getBoolean("deleted", false);
-        updateHash();
-        m_indexNote = m_notes.size();
-        m_notes.add(this);
+        parce(in);
+
+        setSinglton();
+
         if (m_parentHash != null)
             deserialize(PREFIX + m_parentHash, this);
     }
@@ -173,14 +164,41 @@ public class Note {
                  boolean isRenamedHistory, boolean isEdited,
                  boolean isEditedHistory, boolean isDeleted) {
         m_parentHash = hashParent; m_currentHash = hash;
-        m_childHash = hashChild; m_parent = parent;
-        m_child = child; m_name = name; m_content = content;
+        m_name = name; m_content = content;
         m_time = time; m_isRenamed = isRenamed;
         m_isRenamedHistory = isRenamedHistory;
         m_isEdited = isEdited; m_isEditedHistory = isEditedHistory;
         m_isDeleted = isDeleted;
     }
 
+    private void parce(SharedPreferences in) {
+        m_parentHash = in.getString("parentHash", null);
+        m_childsHashs = in.getStringSet("childsHashs", m_childsHashs);
+        m_name = in.getString("name", null);
+        m_content = in.getString("content", null);
+        long millis = in.getLong("time", -1);
+        m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
+        m_isRenamed = in.getBoolean("renamed", false);
+        m_isRenamedHistory = in.getBoolean("renameHistory", false);
+        m_isEdited = in.getBoolean("edited", false);
+        m_isEditedHistory = in.getBoolean("editedHistory", false);
+        m_isDeleted = in.getBoolean("deleted", false);
+        m_isTemplate = in.getBoolean("template", false);
+        updateHash();
+    }
+
+    private void setSinglton() {
+        if (isDeleted()) {
+            m_indexNote = m_notesDeleted.size();
+            m_notesDeleted.add(this);
+        } else if (isTemplate()) {
+            m_indexNote = m_notesTemplate.size();
+            m_notesTemplate.add(this);
+        } else {
+            m_indexNote = m_notes.size();
+            m_notes.add(this);
+        }
+    }
     private String generateHash() {
         byte[] nameBytes = null;
         byte[] contentBytes = null;
@@ -241,7 +259,7 @@ public class Note {
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString("parentHash", m_parentHash);
-        editor.putString("childHash", m_childHash);
+        editor.putStringSet("childsHashs", m_childsHashs);
         editor.putString("name", m_name);
         editor.putString("content", m_content);
         editor.putLong("time", m_time != null ? m_time.toEpochMilli() : -1);
@@ -250,6 +268,7 @@ public class Note {
         editor.putBoolean("edited", m_isEdited);
         editor.putBoolean("editedHistory", m_isEditedHistory);
         editor.putBoolean("deleted", m_isDeleted);
+        editor.putBoolean("template", m_isTemplate);
 
         editor.apply();
     }
@@ -280,6 +299,10 @@ public class Note {
 
     public static Note getNote(int i) {
         return m_notes.get(i);
+    }
+
+    public static Note getNoteDeleted(int i) {
+        return m_notesDeleted.get(i);
     }
 
     public int getId() {
@@ -345,12 +368,30 @@ public class Note {
         serialize();
     }
 
-    public void deleteForce(Context context) {
-
+    public void deleteForce() {
+        if (isDeleted()) {
+            m_notesDeleted.set(m_indexNote, null);
+        } else {
+            m_notes.set(m_indexNote, null);
+        }
+        File file = new File(m_context.getFilesDir(), PREFIX + m_currentHash);
+        if (file.exists()) {
+            file.delete();
+        }
     }
+
+    public Boolean isTemplate() {
+        return m_isTemplate;
+    }
+
+    public Note getParent() {
+        return m_parent;
+    }
+
     private static Instant now() {
         return Instant.now();
     }
+
     public static void setContext(Context context) {
         m_context = context;
     }
