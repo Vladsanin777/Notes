@@ -31,7 +31,10 @@ import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class Note {
-    private static final String HEADS = "HEADS_NOTE";
+    private static final String HEADS_HOTE = "HEADS_NOTE";
+    private static final String DELETED_HOTE = "DELETED_NOTE";
+    private static final String TEMPLATE_HOTE = "TEMPLATE_NOTE";
+    private static final String HEADS_FILE = "HEAD";
     private static final String PREFIX = "note:";
     private final static ArrayList<Note> m_notes = new ArrayList<Note>();
     private final static ArrayList<Note> m_notesTemplate = new ArrayList<Note>();
@@ -54,10 +57,41 @@ public class Note {
     private boolean m_isDeleted;
     private boolean m_isTemplate;
 
-    public static void INIT() {
+    private static void INIT_BASE(String key, ArrayList<Note> list) {
         SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
 
-        Set<String> savedHeads = prefs.getStringSet(HEADS, null);
+        Set<String> saved = prefs.getStringSet(key, null);
+
+        if (saved != null) {
+            for (String head : saved) {
+                Log.d("hash", head);
+                deserialize(head, list);
+            }
+        }
+    }
+
+    public static void INIT_ALL() {
+        INIT_HEADS_NOTES();
+        INIT_TEMPLATE_HOTES();
+        INIT_DELEED_HOTES();
+    }
+
+    public static void INIT_DELEED_HOTES() {
+        INIT_BASE(DELETED_HOTES, m_deletedNotes);
+    }
+
+    public static void INIT_TEMPLATE_HOTES() {
+        INIT_BASE(TEMPLATE_HOTES, m_templateNotes);
+    }
+
+    public static void INIT_HEADS_NOTES() {
+        INIT_BASE(HEADS_HOTES, m_headsNotes);
+    }
+
+    public static void INIT() {
+        SharedPreferences prefs = m_context.getSharedPreferences(HEADS_NOTE, Context.MODE_PRIVATE);
+
+        Set<String> savedHeads = prefs.getStringSet(HEADS_NOTE, null);
 
         if (savedHeads != null) {
             for (String head : savedHeads) {
