@@ -1,21 +1,14 @@
 package com.example.note;
 
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.text.BoringLayout;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -23,10 +16,10 @@ import java.security.NoSuchAlgorithmException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.example.note.TypeNote.*;
@@ -38,68 +31,109 @@ public class Note {
     private static final String TEMPLATES_HOTES = "TEMPLATE_NOTE";
     private static final String HEAD_FILE = "HEAD";
     private static final String PREFIX = "note:";
-    private final static ArrayList<Note> m_headsNotes = new ArrayList<Note>();
-    private final static ArrayList<Note> m_templateNotes = new ArrayList<Note>();
-    private final static ArrayList<Note> m_deletedNotes = new ArrayList<Note>();
+    private static final ArrayList<Note> m_headsNotes = new ArrayList<Note>();
+    private static final ArrayList<Note> m_templateNotes = new ArrayList<Note>();
+    private static final ArrayList<Note> m_deletedNotes = new ArrayList<Note>();
     private static final ZoneId m_deviceZone = ZoneId.systemDefault();
+    private static final Map<String, Note> m_allNotes = new HashMap<String, Note>();
     private static Context m_context;
     private int m_indexNote;
+    private String m_parentHash;
     private String m_hash;
     private Note m_parent;
     private String m_name;
     private String m_content;
     private Instant m_time;
     private boolean m_isRenamed;
-    private boolean m_isRenamedHistory;
     private boolean m_isEdited;
-    private boolean m_isEditedHistory;
     private TypeNote m_type;
 
-    public static void INIT_ALL() {
+    public static void INIT_ALL(Context context) {
+        setContext(context);
+
+        String[] files = m_context.fileList();
+
+        for (String file : files) {
+            m_allNotes.replace(file.substring(5), deserialize(file));
+        }
+
         INIT_HEADS_NOTES();
         INIT_TEMPLATE_HOTES();
         INIT_DELEED_HOTES();
+
+        INIT_PARENT_HEADS_NOTES();
+        INIT_PARENT_TEMPLATE_HOTES();
+        INIT_PARENT_DELEED_HOTES();
     }
 
     public static void INIT_DELEED_HOTES() {
-        INIT_BASE(DELETEDS_HOTES, m_deletedNotes);
+        INIT_BASE(HEAD_FILE, DELETEDS_HOTES, m_deletedNotes);
     }
 
     public static void INIT_TEMPLATE_HOTES() {
-        INIT_BASE(TEMPLATES_HOTES, m_templateNotes);
+        INIT_BASE(HEAD_FILE, TEMPLATES_HOTES, m_templateNotes);
     }
 
     public static void INIT_HEADS_NOTES() {
-        INIT_BASE(HEADS_HOTES, m_headsNotes);
+        INIT_BASE(HEAD_FILE, HEADS_HOTES, m_headsNotes);
     }
 
-    public static void INIT_BASE(String key, ArrayList<Note> list) {
-        SharedPreferences prefs = m_context.getSharedPreferences(HEADS_FILE, Context.MODE_PRIVATE);
+    public static void INIT_BASE(String fileName, String key, ArrayList<Note> list) {
+        SharedPreferences prefs = m_context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
 
-        Set<String> saved = prefs.getStringSet(HEADS_FILE, null);
+        Set<String> hashs = prefs.getStringSet(key, null);
 
-        if (saved != null) {
-            for (String head : saved) {
-                Log.d("hash", head);
-                list.add(deserialize(head));
+        if (hashs != null) {
+            for (String hesh : hashs) {
+                Log.d("hash", hesh);
+                list.add(m_allNotes.get(hesh));
             }
         }
     }
 
-    private static void updateHeadsNotes() {
-        Log.d("debug", "updateHeads вызвана. Размер m_notes: " + m_headsNotes.size());
+    public static void INIT_PARENT_DELEED_HOTES() {
+        INIT_PARENT_BASE(m_deletedNotes);
+    }
 
-        SharedPreferences prefs = m_context.getSharedPreferences(HEADS_FILE, Context.MODE_PRIVATE);
+    public static void INIT_PARENT_TEMPLATE_HOTES() {
+        INIT_PARENT_BASE(m_templateNotes);
+    }
+
+    public static void INIT_PARENT_HEADS_NOTES() {
+        INIT_PARENT_BASE(m_headsNotes);
+    }
+    public static void INIT_PARENT_BASE(ArrayList<Note> list) {
+        for (Note child : list) {
+            while (child.m_parentHash != null) {
+                child.m_parent = m_allNotes.get(child.m_parentHash);
+                child = child.m_parent;
+            }
+        }
+    }
+
+    private static void UPDATE_HEADS() {
+        UPDATE_BASE(HEAD_FILE, HEADS_HOTES, m_headsNotes);
+    }
+
+    private static void UPDATE_TEMPLATE() {
+        UPDATE_BASE(HEAD_FILE, TEMPLATES_HOTES, m_templateNotes);
+    }
+
+    private static void UPDATE_DELETED() {
+        UPDATE_BASE(HEAD_FILE, DELETEDS_HOTES, m_deletedNotes);
+    }
+
+    private static void UPDATE_BASE(String fileName, String key, ArrayList<Note> list) {
+        SharedPreferences prefs = m_context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         Set<String> headsToSave = new HashSet<>();
 
         for (int i = 0; i < m_headsNotes.size(); i++) {
-            Log.d("head", PREFIX + m_headsNotes.get(i).m_currentHash);
-            headsToSave.add(PREFIX + m_headsNotes.get(i).m_currentHash);
+            headsToSave.add(PREFIX + m_headsNotes.get(i).m_hash);
         }
 
-        editor.putStringSet(HEADS_FILE, headsToSave);
+        editor.putStringSet(key, headsToSave);
         editor.apply();
     }
 
@@ -108,119 +142,37 @@ public class Note {
         m_content = content;
         m_time = now();
         m_isRenamed = false;
-        m_isRenamedHistory = false;
         m_isEdited = false;
-        m_isEditedHistory = false;
         m_type = type;
         updateHash();
         serialize();
-        setSingleton();
     }
 
     public Note(String name, String content, TypeNote type, Note parent) {
+        m_parentHash = parent.m_hash;
         m_parent = parent;
         m_name = name;
         m_content = content;
         m_time = now();
         m_isRenamed = isRenamed(parent);
-        m_isRenamedHistory = parent.isRenamed();
         m_isEdited = isEdited(parent);
-        m_isEditedHistory = parent.isEdited();
         m_type = type;
         updateHash();
         serialize();
-
-        setSingleton();
-    }
-
-    protected Note(SharedPreferences in, Note child) {
-        parce(in);
-
-        if (child == null) {
-            if (isDeleted()) {
-                m_indexNote = m_notesDeleted.size();
-                m_notesDeleted.add(this);
-            } else {
-                m_indexNote = m_notes.size();
-                m_notes.add(this);
-            }
-        } else {
-            child.m_parent = this;
-            m_indexNote = child.m_indexNote;
-        }
-        if (m_parentHash != null)
-            deserialize(PREFIX + m_parentHash, this);
     }
 
     protected Note(SharedPreferences in) {
         parce(in);
-
-        setSinglton();
-
-        if (m_parentHash != null)
-            deserialize(PREFIX + m_parentHash, this);
-    }
-
-    private void setSingleton() {
-        switch (m_type) {
-            case NOTE:
-                if (m_parent != null && m_parent.m_type == TypeNote.NOTE) {
-                    m_indexNote = m_parent.m_indexNote;
-                    if (m_headsNotes.get(m_indexNote) != m_parent) {
-                        m_parent.setTemplate();
-                    }
-                    m_headsNotes.set(m_indexNote, this);
-                } else {
-                    m_indexNote = m_headsNotes.size();
-                    m_headsNotes.add(this);
-                }
-                break;
-            case TEMPLATE:
-                m_indexNote = m_templateNotes.size();
-                m_templateNotes.add(this);
-                break;
-            case DELETED:
-                m_indexNote = m_deletedNotes.size();
-                m_deletedNotes.add(this);
-                break;
-        }
-    }
-
-    public void setTemplate() {
-        switch (m_type) {
-            case NOTE:
-                if (m_headsNotes.get(m_indexNote) == this) {
-                    m_headsNotes.remove();
-                }
-                break;
-        }
-        m_type = TypeNote.TEMPLATE;
-
-        serialize();
-    }
-
-    private Note(String hashParent, String hash, String hashChild,
-                 Note parent, Note child, String name,
-                 String content, Instant time, boolean isRenamed,
-                 boolean isRenamedHistory, boolean isEdited,
-                 boolean isEditedHistory, boolean isDeleted) {
-        m_parentHash = hashParent; m_currentHash = hash;
-        m_name = name; m_content = content;
-        m_time = time; m_isRenamed = isRenamed;
-        m_isRenamedHistory = isRenamedHistory;
-        m_isEdited = isEdited; m_isEditedHistory = isEditedHistory;
-        m_isDeleted = isDeleted;
     }
 
     private void parce(SharedPreferences in) {
+        m_parentHash = in.getString("parentHash", null);
         m_name = in.getString("name", null);
         m_content = in.getString("content", null);
         long millis = in.getLong("time", -1);
         m_time = (millis != -1) ? Instant.ofEpochMilli(millis) : null;
         m_isRenamed = in.getBoolean("renamed", false);
-        m_isRenamedHistory = in.getBoolean("renameHistory", false);
         m_isEdited = in.getBoolean("edited", false);
-        m_isEditedHistory = in.getBoolean("editedHistory", false);
         m_type = TypeNote.values()[in.getInt("type", TypeNote.NOTE.ordinal())];
         updateHash();
     }
@@ -229,14 +181,11 @@ public class Note {
         SharedPreferences.Editor editor = out.edit();
 
         editor.putString("parentHash", m_parentHash);
-        editor.putStringSet("childsHashs", m_childsHashs);
         editor.putString("name", m_name);
         editor.putString("content", m_content);
         editor.putLong("time", m_time != null ? m_time.toEpochMilli() : -1);
         editor.putBoolean("renamed", m_isRenamed);
-        editor.putBoolean("renamedHistory", m_isRenamedHistory);
         editor.putBoolean("edited", m_isEdited);
-        editor.putBoolean("editedHistory", m_isEditedHistory);
         editor.putInt("type", m_type.ordinal());
 
         editor.apply();
@@ -279,12 +228,8 @@ public class Note {
     private void updateHash() {
         String hash = generateHash();
         if (hash != null) {
-            m_currentHash = hash;
+            m_hash = hash;
         }
-    }
-
-    private String getHash() {
-        return m_currentHash;
     }
 
     private static String bytesToHex(byte[] bytes) {
@@ -296,14 +241,11 @@ public class Note {
     }
 
     private void serialize() {
-        if (m_currentHash == null) return;
+        if (m_hash == null) return;
 
-        SharedPreferences prefs = m_context.getSharedPreferences(PREFIX + m_currentHash, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences prefs = m_context.getSharedPreferences(PREFIX + m_hash, Context.MODE_PRIVATE);
 
-
-
-        editor.apply();
+        unparce(prefs);
     }
 
     public static Note deserialize(String fileName) {
@@ -316,26 +258,27 @@ public class Note {
         return note;
     }
 
-    private static Note deserialize(String fileName, Note child) {
-        if (!fileName.startsWith(PREFIX))
-            return null;
-        SharedPreferences prefs = m_context.getSharedPreferences(HEADS, Context.MODE_PRIVATE);
-
-        Note note = new Note(prefs, child);
-
-        return note;
+    public static int getHeadCount() {
+        return m_headsNotes.size();
     }
 
-    public static int getCount() {
-        return m_notes.size();
+    public static int getTemplateCount() {
+        return m_headsNotes.size();
+    }
+    public static int getDeletedCount() {
+        return m_headsNotes.size();
     }
 
-    public static Note getNote(int i) {
-        return m_notes.get(i);
+    public static Note getHeadNote(int i) {
+        return m_headsNotes.get(i);
     }
 
-    public static Note getNoteDeleted(int i) {
-        return m_notesDeleted.get(i);
+    public static Note getTemplateNote(int i) {
+        return m_templateNotes.get(i);
+    }
+
+    public static Note getDeletedNote(int i) {
+        return m_deletedNotes.get(i);
     }
 
     public int getId() {
@@ -351,16 +294,9 @@ public class Note {
     public ZonedDateTime getTime() {
         return m_time.atZone(m_deviceZone);
     }
-    public boolean isRenamedCurrent() {
-        return m_isRenamed;
-    }
-
-    public boolean isRenamedHistory() {
-        return m_isRenamedHistory;
-    }
 
     public boolean isRenamed() {
-        return isRenamedCurrent() || isRenamedHistory();
+        return m_isRenamed;
     }
 
     public boolean isRenamed(String newName) {
@@ -371,16 +307,8 @@ public class Note {
         return !m_name.equals(note.m_name);
     }
 
-    public boolean isEditedCurrent() {
-        return m_isEdited;
-    }
-
-    public boolean isEditedHistory() {
-        return m_isEditedHistory;
-    }
-
     public boolean isEdited() {
-        return isEditedCurrent() || isEditedHistory();
+        return m_isEdited;
     }
 
     public boolean isEdited(String newContent) {
@@ -393,28 +321,86 @@ public class Note {
 
 
     public boolean isDeleted() {
-        return m_isDeleted;
+        return m_type == TypeNote.DELETED;
     }
 
-    public void delete() {
-        m_isDeleted = true;
+    public void template() {
+        switch (m_type) {
+            case NOTE:
+                if (m_headsNotes.get(m_indexNote) == this) {
+                    m_headsNotes.set(m_indexNote, null);
+                }
+                m_indexNote = m_templateNotes.size();
+                m_templateNotes.add(this);
+                m_type = TypeNote.TEMPLATE;
+                serialize();
+                break;
+            case DELETED:
+                if (m_deletedNotes.get(m_indexNote) == this) {
+                    m_deletedNotes.set(m_indexNote, null);
+                }
+                m_indexNote = m_templateNotes.size();
+                m_templateNotes.add(this);
+                m_type = TypeNote.TEMPLATE;
+                serialize();
+                break;
+        }
+
         serialize();
     }
 
-    public void deleteForce() {
-        if (isDeleted()) {
-            m_notesDeleted.set(m_indexNote, null);
-        } else {
-            m_notes.set(m_indexNote, null);
+    public void delete() {
+        switch (m_type) {
+            case NOTE:
+                if (m_headsNotes.get(m_indexNote) == this) {
+                    m_headsNotes.set(m_indexNote, null);
+                }
+                m_indexNote = m_deletedNotes.size();
+                m_deletedNotes.add(this);
+                m_type = TypeNote.DELETED;
+                serialize();
+                break;
+            case TEMPLATE:
+                if (m_templateNotes.get(m_indexNote) == this) {
+                    m_templateNotes.set(m_indexNote, null);
+                }
+                m_indexNote = m_deletedNotes.size();
+                m_deletedNotes.add(this);
+                m_type = TypeNote.DELETED;
+                serialize();
+                break;
         }
-        File file = new File(m_context.getFilesDir(), PREFIX + m_currentHash);
-        if (file.exists()) {
-            file.delete();
+    }
+
+
+    public void deleteForce() {
+        switch (m_type) {
+            case NOTE:
+                if (m_headsNotes.get(m_indexNote) == this) {
+                    m_headsNotes.set(m_indexNote, null);
+                }
+                break;
+            case DELETED:
+                if (m_deletedNotes.get(m_indexNote) == this) {
+                    m_deletedNotes.set(m_indexNote, null);
+                }
+                break;
+            case TEMPLATE:
+                if (m_templateNotes.get(m_indexNote) == this) {
+                    m_templateNotes.set(m_indexNote, null);
+                }
+                break;
+        }
+
+        File note = new File(m_context.getFilesDir(), PREFIX + m_hash);
+
+        if (note.exists()) {
+            note.delete();
         }
     }
 
     public Boolean isTemplate() {
-        return m_isTemplate;
+        return m_type == TypeNote.TEMPLATE;
     }
 
     public Note getParent() {
@@ -425,8 +411,7 @@ public class Note {
         return Instant.now();
     }
 
-    public static void setContext(Context context) {
+    private static void setContext(Context context) {
         m_context = context;
     }
 }
-
