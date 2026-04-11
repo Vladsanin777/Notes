@@ -46,7 +46,11 @@ public class Notes extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        String name = intent.getStringExtra("name_activite");
+        String label = intent.getStringExtra("label");
+
+        TextView labelView = findViewById(R.id.label_notes);
+
+        labelView.setText(label);
 
         int type = intent.getIntExtra("type", -1);
 

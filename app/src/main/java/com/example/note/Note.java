@@ -146,8 +146,8 @@ public class Note {
 
         Set<String> headsToSave = new HashSet<String>();
 
-        for (int i = 0; i < m_headsNotes.size(); i++) {
-            Note note = m_headsNotes.get(i);
+        for (int i = 0; i < list.size(); i++) {
+            Note note = list.get(i);
             if (note != null) {
                 headsToSave.add(PREFIX + note.m_hash);
             }
