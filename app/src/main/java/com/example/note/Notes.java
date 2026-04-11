@@ -203,12 +203,14 @@ public class Notes extends AppCompatActivity {
         }
     }
 
-    public boolean onLongClickAddNote(View view) {
+    public boolean onLongClickAddNoteHead(View view) {
         PopupMenu popup = new PopupMenu(getApplicationContext(), view);
 
-        popup.getMenu().add(0, 1, 0, "Edit");
-        popup.getMenu().add(0, 2, 1, "Delete");
+        popup.getMenu().add(0, 1, 0, "Delete");
+        popup.getMenu().add(0, 2, 1, "Template");
         popup.getMenu().add(0, 3, 2, "Create");
+        popup.getMenu().add(0, 4, 3, "History");
+        popup.getMenu().add(0, 5, 4, "Edit");
 
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
