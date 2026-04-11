@@ -13,7 +13,8 @@
         android:theme="@style/Theme.Design.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="NewApi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,9 +22,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".EditNote"/>
+            android:name=".EditNote"
+            tools:ignore="NewApi"/>
         <activity
-            android:name=".Notes"/>
+            android:name=".Notes"
+            tools:ignore="NewApi"/>
     </application>
 
 </manifest>

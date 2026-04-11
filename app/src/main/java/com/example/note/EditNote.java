@@ -1,6 +1,6 @@
 package com.example.note;
 
-import static android.content.Intent.getIntent;
+import com.example.note.TypeNote.*;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -20,6 +20,8 @@ public class EditNote extends AppCompatActivity {
     EditText m_content;
     int m_idNote;
 
+    TypeNote m_type;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -38,16 +40,39 @@ public class EditNote extends AppCompatActivity {
 
         m_idNote = intent.getIntExtra("id_note", -1);
 
-        if (m_idNote != -1) {
 
-            Note note = Note.getNote(m_idNote);
+        int type = intent.getIntExtra("type_note", -1);
 
-            String name = note.getName();
+        if (type != -1) {
+            m_type = TypeNote.values()[type];
 
-            String content = note.getContent();
+            if (m_idNote != -1) {
 
-            m_name.setText(name);
-            m_content.setText(content);
+
+                Note note = null;
+
+                switch (m_type) {
+                    case HEAD:
+                        note = Note.getHeadNote(m_idNote);
+                        break;
+                    case TEMPLATE:
+                        note = Note.getTemplateNote(m_idNote);
+                        break;
+                    case DELETED:
+                        note = Note.getDeletedNote(m_idNote);
+                        break;
+                    default:
+                        return;
+                }
+
+
+                String name = note.getName();
+
+                String content = note.getContent();
+
+                m_name.setText(name);
+                m_content.setText(content);
+            }
         }
     }
 
@@ -64,6 +89,7 @@ public class EditNote extends AppCompatActivity {
 
         Intent returnIntent = new Intent();
         returnIntent.putExtra("id_note", m_idNote);
+        returnIntent.putExtra("type_note", m_type.ordinal());
         returnIntent.putExtra("name_note", name);
         returnIntent.putExtra("content_note", content);
         setResult(Activity.RESULT_OK, returnIntent);

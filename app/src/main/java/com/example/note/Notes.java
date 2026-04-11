@@ -1,5 +1,7 @@
 package com.example.note;
 
+import static com.example.note.TypeNote.*;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -12,6 +14,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -29,17 +32,53 @@ public class Notes extends AppCompatActivity {
 
     private LinearLayout m_notesLayout;
     private Context m_notesContext;
+    private TypeNote m_type;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.notes);
+
+
         m_notesLayout = findViewById(R.id.notes);
         m_notesContext = m_notesLayout.getContext();
 
-        int count = Note.getCount();
-        for (int i = 0; i < count; i++) {
-            addNote(Note.getNote(i));
+        Intent intent = getIntent();
+
+        String name = intent.getStringExtra("name_activite");
+
+        int type = intent.getIntExtra("type", -1);
+
+        if (type != -1) {
+
+            m_type = values()[type];
+
+            int count = 0;
+
+            switch (m_type) {
+                case HEAD:
+                    count = Note.getHeadCount();
+
+                    for (int i = 0; i < count; i++) {
+                        addNote(Note.getHeadNote(i));
+                    }
+                    break;
+                case TEMPLATE:
+                    count = Note.getTemplateCount();
+
+                    for (int i = 0; i < count; i++) {
+                        addNote(Note.getTemplateNote(i));
+                    }
+                    break;
+                case DELETED:
+                    count = Note.getDeletedCount();
+
+                    for (int i = 0; i < count; i++) {
+                        addNote(Note.getDeletedNote(i));
+                    }
+                    break;
+            }
         }
     }
 
@@ -49,6 +88,7 @@ public class Notes extends AppCompatActivity {
         Intent intent = new Intent(Notes.this, EditNote.class);
         intent.putExtra("label", "Edit note");
         intent.putExtra("id_note", note.getId());
+        intent.putExtra("type_note", note.getType().ordinal());
         addNoteLauncher.launch(intent);
     }
 
@@ -64,74 +104,99 @@ public class Notes extends AppCompatActivity {
     public void onClickAddNote(View view) {
         Intent intent = new Intent(Notes.this, EditNote.class);
         intent.putExtra("label", "New note");
+        intent.putExtra("type_note", m_type.ordinal());
         addNoteLauncher.launch(intent);
     }
 
     private void handleNoteResult(ActivityResult result) {
+        Log.d("test", "Return in Notes.java");
         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
             int idNote = data.getIntExtra("id_note", -1);
 
+            int typeId = data.getIntExtra("type_note", -1);
+
+
             String name = data.getStringExtra("name_note");
             String content = data.getStringExtra("content_note");
 
-            Note note;
-            if (idNote != -1) {
-                Note noteOld = Note.getNote(idNote);
 
-                note = new Note(name, content, noteOld);
+            if (typeId != -1) {
+                TypeNote type = TypeNote.values()[typeId];
 
-                View view = m_notesLayout.findViewWithTag(noteOld);
+                Note note = null;
+                Note noteOld = null;
 
-                m_notesLayout.removeView(view);
-            } else {
-                note = new Note(name, content);
+                if (idNote != -1) {
+                    switch (m_type) {
+                        case HEAD:
+                            noteOld = Note.getHeadNote(idNote);
+                            break;
+                        case TEMPLATE:
+                            noteOld = Note.getTemplateNote(idNote);
+                            break;
+                        case DELETED:
+                            noteOld = Note.getDeletedNote(idNote);
+                            break;
+                    }
+
+                    note = new Note(name, content, type, noteOld);
+
+                    View view = m_notesLayout.findViewWithTag(noteOld);
+
+                    m_notesLayout.removeView(view);
+                } else {
+                    note = new Note(name, content, type);
+                }
+                Log.d("type", note.getContent());
+                Log.d("test", "Type: " + type + " vs M_Type: " + m_type);
+                if (type == m_type) {
+                    addNote(note);
+                }
             }
-
-            addNote(note);
         }
     }
 
     public void addNote(Note note) {
-        if (note.isDeleted())
-            return;
+        if (note != null) {
 
-        LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
+            LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
 
-        mainLayout.setClickable(true);
-        mainLayout.setFocusable(true);
+            mainLayout.setClickable(true);
+            mainLayout.setFocusable(true);
 
-        mainLayout.setTag(note);
+            mainLayout.setTag(note);
 
-        mainLayout.setOnLongClickListener(this::onLongClickAddNote);
+            mainLayout.setOnLongClickListener(this::onLongClickAddNote);
 
-        m_notesLayout.addView(mainLayout, 0);
+            m_notesLayout.addView(mainLayout, 0);
 
-        Context noteContext = mainLayout.getContext();
+            Context noteContext = mainLayout.getContext();
 
-        mainLayout.addView(createTextView(noteContext, note.getName(), 32, 2));
+            mainLayout.addView(createTextView(noteContext, note.getName(), 32, 2));
 
-        mainLayout.addView(createVertacalSpace(mainLayout.getContext(), 15));
+            mainLayout.addView(createVertacalSpace(mainLayout.getContext(), 15));
 
-        mainLayout.addView(createTextView(noteContext, note.getContent(), 24, 6));
+            mainLayout.addView(createTextView(noteContext, note.getContent(), 24, 6));
 
-        LinearLayout footerLayout = createLinearLayoutFooter(
-                mainLayout.getContext(), LinearLayout.HORIZONTAL);
+            LinearLayout footerLayout = createLinearLayoutFooter(
+                    mainLayout.getContext(), LinearLayout.HORIZONTAL);
 
-        mainLayout.addView(footerLayout);
+            mainLayout.addView(footerLayout);
 
-        Context footerLayoutContext = footerLayout.getContext();
+            Context footerLayoutContext = footerLayout.getContext();
 
-        footerLayout.addView(createTextView(footerLayoutContext, "renamed", 12, note.isRenamed()));
+            footerLayout.addView(createTextView(footerLayoutContext, "renamed", 12, note.isRenamed()));
 
-        footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
+            footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
-        footerLayout.addView(createTextView(footerLayoutContext, "edited", 12, note.isEdited()));
+            footerLayout.addView(createTextView(footerLayoutContext, "edited", 12, note.isEdited()));
 
-        footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
+            footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
-        footerLayout.addView(createTextView(footerLayoutContext, note.getTime().toString(), 12));
+            footerLayout.addView(createTextView(footerLayoutContext, note.getTime().toString(), 12));
+        }
     }
 
     public boolean onLongClickAddNote(View view) {
@@ -227,10 +292,4 @@ public class Notes extends AppCompatActivity {
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
-
-    /**
-     * A native method that is implemented by the 'note' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 }

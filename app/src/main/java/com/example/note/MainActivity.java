@@ -27,21 +27,19 @@ public class MainActivity extends AppCompatActivity {
         m_binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(m_binding.getRoot());
 
-        Note.setContext(getApplicationContext());
-
-        Note.INIT();
+        Note.INIT(getApplicationContext());
 
     }
 
     private void onClickNotes(String label, TypeNote type) {
         Intent intent = new Intent(MainActivity.this, Notes.class);
         intent.putExtra("label", label);
-        intent.putExtra("type", type);
+        intent.putExtra("type", type.ordinal());
         startActivity(intent);
     }
 
     public void onClickNotes(View view) {
-        onClickNotes("Notes", TypeNote.NOTE);
+        onClickNotes("Notes", TypeNote.HEAD);
     }
 
     public void onClickTemplate(View view) {
