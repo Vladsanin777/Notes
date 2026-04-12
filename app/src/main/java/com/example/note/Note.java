@@ -129,14 +129,17 @@ public class Note {
     }
 
     private static void UPDATE_HEADS() {
+        Log.d("update", "HEADS");
         UPDATE_BASE(HEAD_FILE, HEADS_HOTES, m_headsNotes);
     }
 
     private static void UPDATE_TEMPLATE() {
+        Log.d("update", "TEMPLATE");
         UPDATE_BASE(HEAD_FILE, TEMPLATES_HOTES, m_templateNotes);
     }
 
     private static void UPDATE_DELETED() {
+        Log.d("update", "DELEDED");
         UPDATE_BASE(HEAD_FILE, DELETEDS_HOTES, m_deletedNotes);
     }
 
@@ -149,6 +152,7 @@ public class Note {
         for (int i = 0; i < list.size(); i++) {
             Note note = list.get(i);
             if (note != null) {
+                Log.d("hash", note.m_hash);
                 headsToSave.add(PREFIX + note.m_hash);
             }
         }
@@ -298,16 +302,16 @@ public class Note {
     }
 
     public static Note deserialize(String fileName) {
-        Log.d("deserialize", fileName);
         if (!fileName.startsWith(PREFIX))
             return null;
         SharedPreferences prefs = m_context.getSharedPreferences(fileName, Context.MODE_PRIVATE);
 
         Note note = new Note(prefs);
-
-        Log.d("name", note.getName());
-
-        return note;
+        if (fileName.substring(5).equals(note.m_hash)) {
+            return note;
+        } else {
+            return null;
+        }
     }
 
     public static int getHeadCount() {
@@ -448,24 +452,35 @@ public class Note {
             case HEAD:
                 if (m_headsNotes.get(m_indexNote) == this) {
                     m_headsNotes.set(m_indexNote, null);
-                }
-                break;
-            case DELETED:
-                if (m_deletedNotes.get(m_indexNote) == this) {
-                    m_deletedNotes.set(m_indexNote, null);
+                    UPDATE_HEADS();
                 }
                 break;
             case TEMPLATE:
                 if (m_templateNotes.get(m_indexNote) == this) {
                     m_templateNotes.set(m_indexNote, null);
+                    UPDATE_TEMPLATE();
+                }
+                break;
+            case DELETED:
+                if (m_deletedNotes.get(m_indexNote) == this) {
+                    m_deletedNotes.set(m_indexNote, null);
+                    UPDATE_DELETED();
                 }
                 break;
         }
 
-        File note = new File(m_context.getFilesDir(), PREFIX + m_hash);
+        String nameForPrefs = PREFIX + m_hash;
 
-        if (note.exists()) {
-            note.delete();
+        m_context.getSharedPreferences(nameForPrefs, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+
+        File prefsDir = new File(m_context.getApplicationInfo().dataDir, "shared_prefs");
+        File noteFile = new File(prefsDir, nameForPrefs + ".xml");
+
+        if (noteFile.exists()) {
+            noteFile.delete();
         }
     }
 

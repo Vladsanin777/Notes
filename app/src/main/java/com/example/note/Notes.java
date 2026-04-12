@@ -2,8 +2,6 @@ package com.example.note;
 
 import static com.example.note.TypeNote.*;
 
-import java.util.function.Function;
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -35,7 +33,7 @@ public class Notes extends AppCompatActivity {
     private LinearLayout m_notesLayout;
     private Context m_notesContext;
     private TypeNote m_type;
-    private Function<View, Boolean> m_onClickLong;
+    private View.OnLongClickListener m_onClickLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +55,8 @@ public class Notes extends AppCompatActivity {
 
         int type = intent.getIntExtra("type", -1);
 
+        Log.d("type", String.valueOf(type));
+
         if (type != -1) {
 
             m_type = values()[type];
@@ -67,29 +67,32 @@ public class Notes extends AppCompatActivity {
                 case HEAD:
                     count = Note.getHeadCount();
 
+                    m_onClickLong = this::onLongClickAddNoteHead;
+
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getHeadNote(i));
                     }
 
-                    m_onClickLong = this::onLongClickAddNoteHead;
                     break;
                 case TEMPLATE:
                     count = Note.getTemplateCount();
+
+                    m_onClickLong = this::onLongClickAddNoteTemplate;
 
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getTemplateNote(i));
                     }
 
-                    m_onClickLong = this::onLongClickAddNoteTemplate;
                     break;
                 case DELETED:
                     count = Note.getDeletedCount();
+
+                    m_onClickLong = this::onLongClickAddNoteDelete;
 
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getDeletedNote(i));
                     }
 
-                    m_onClickLong = this::onLongClickAddNoteDelete;
                     break;
             }
         }
@@ -109,7 +112,7 @@ public class Notes extends AppCompatActivity {
         LinearLayout noteLayout = (LinearLayout) view;
         Note note = (Note) noteLayout.getTag();
 
-        note.template();
+        note.head();
 
         m_notesLayout.removeView(noteLayout);
     }
@@ -208,7 +211,7 @@ public class Notes extends AppCompatActivity {
 
             mainLayout.setTag(note);
 
-            mainLayout.setOnLongClickListener((View.OnLongClickListener) m_onClickLong);
+            mainLayout.setOnLongClickListener(m_onClickLong);
 
             m_notesLayout.addView(mainLayout, 0);
 
