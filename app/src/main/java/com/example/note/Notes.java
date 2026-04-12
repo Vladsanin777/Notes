@@ -2,6 +2,8 @@ package com.example.note;
 
 import static com.example.note.TypeNote.*;
 
+import java.util.function.Function;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -33,6 +35,7 @@ public class Notes extends AppCompatActivity {
     private LinearLayout m_notesLayout;
     private Context m_notesContext;
     private TypeNote m_type;
+    private Function<View, Boolean> m_onClickLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +70,8 @@ public class Notes extends AppCompatActivity {
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getHeadNote(i));
                     }
+
+                    m_onClickLong = this::onLongClickAddNoteHead;
                     break;
                 case TEMPLATE:
                     count = Note.getTemplateCount();
@@ -74,6 +79,8 @@ public class Notes extends AppCompatActivity {
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getTemplateNote(i));
                     }
+
+                    m_onClickLong = this::onLongClickAddNoteTemplate;
                     break;
                 case DELETED:
                     count = Note.getDeletedCount();
@@ -81,6 +88,8 @@ public class Notes extends AppCompatActivity {
                     for (int i = 0; i < count; i++) {
                         addNote(Note.getDeletedNote(i));
                     }
+
+                    m_onClickLong = this::onLongClickAddNoteDelete;
                     break;
             }
         }
@@ -96,11 +105,38 @@ public class Notes extends AppCompatActivity {
         addNoteLauncher.launch(intent);
     }
 
+    public void onClickHeadNote(View view) {
+        LinearLayout noteLayout = (LinearLayout) view;
+        Note note = (Note) noteLayout.getTag();
+
+        note.template();
+
+        m_notesLayout.removeView(noteLayout);
+    }
+
+    public void onClickTemplateNote(View view) {
+        LinearLayout noteLayout = (LinearLayout) view;
+        Note note = (Note) noteLayout.getTag();
+
+        note.template();
+
+        m_notesLayout.removeView(noteLayout);
+    }
+
     public void onClickDeleteNote(View view) {
         LinearLayout noteLayout = (LinearLayout) view;
         Note note = (Note) noteLayout.getTag();
 
         note.delete();
+
+        m_notesLayout.removeView(noteLayout);
+    }
+
+    public void onClickDeletePermanentlyNote(View view) {
+        LinearLayout noteLayout = (LinearLayout) view;
+        Note note = (Note) noteLayout.getTag();
+
+        note.deleteForce();
 
         m_notesLayout.removeView(noteLayout);
     }
@@ -172,7 +208,7 @@ public class Notes extends AppCompatActivity {
 
             mainLayout.setTag(note);
 
-            mainLayout.setOnLongClickListener(this::onLongClickAddNote);
+            mainLayout.setOnLongClickListener((View.OnLongClickListener) m_onClickLong);
 
             m_notesLayout.addView(mainLayout, 0);
 
@@ -215,16 +251,93 @@ public class Notes extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1: {
-                    onClickEditNote(view);
+                    onClickDeleteNote(view);
                     return true;
                 }
                 case 2: {
-                    onClickDeleteNote(view);
+                    onClickTemplateNote(view);
                     return true;
                 }
                 case 3:
                     onClickAddNote(view);
                     return true;
+                case 4:
+                    // onClickHistoryNote(view);
+                    return true;
+                case 5:
+                    onClickEditNote(view);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+
+        popup.show();
+
+        return true;
+    }
+
+    public boolean onLongClickAddNoteTemplate(View view) {
+        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+
+        popup.getMenu().add(0, 1, 0, "Delete");
+        popup.getMenu().add(0, 2, 1, "Move to note");
+        popup.getMenu().add(0, 3, 2, "Create");
+        popup.getMenu().add(0, 4, 3, "History");
+        popup.getMenu().add(0, 5, 4, "Edit");
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: {
+                    onClickDeleteNote(view);
+                    return true;
+                }
+                case 2: {
+                    onClickHeadNote(view);
+                    return true;
+                }
+                case 3:
+                    onClickAddNote(view);
+                    return true;
+                case 4:
+                    // onClickHistoryNote(view);
+                    return true;
+                case 5:
+                    onClickEditNote(view);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+
+        popup.show();
+
+        return true;
+    }
+
+    public boolean onLongClickAddNoteDelete(View view) {
+        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+
+        popup.getMenu().add(0, 1, 0, "Delete permanently");
+        popup.getMenu().add(0, 2, 1, "Return as template");
+        popup.getMenu().add(0, 3, 1, "Return as note");
+        popup.getMenu().add(0, 4, 3, "History");
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: {
+                    onClickDeletePermanentlyNote(view);
+                    return true;
+                }
+                case 2: {
+                    onClickTemplateNote(view);
+                    return true;
+                }
+                case 3:
+                    onClickHeadNote(view);
+                    return true;
+                case 4:
+                    // onClickHistoryNote(view);
                 default:
                     return false;
             }
