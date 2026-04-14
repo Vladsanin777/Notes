@@ -22,6 +22,7 @@ public class EditNote extends AppCompatActivity {
 
     TypeNote m_type;
 
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

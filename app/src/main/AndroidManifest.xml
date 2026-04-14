@@ -27,6 +27,9 @@
         <activity
             android:name=".Notes"
             tools:ignore="NewApi"/>
+        <activity
+            android:name=".History"
+            tools:ignore="NewApi"/>
     </application>
 
 </manifest>
