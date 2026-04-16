@@ -25,7 +25,7 @@
             android:name=".EditNote"
             tools:ignore="NewApi"/>
         <activity
-            android:name=".Notes"
+            android:name=".NotesAny"
             tools:ignore="NewApi"/>
         <activity
             android:name=".History"

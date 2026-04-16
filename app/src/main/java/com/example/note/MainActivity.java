@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onClickNotes(String label, TypeNote type) {
-        Intent intent = new Intent(MainActivity.this, Notes.class);
+        Intent intent = new Intent(MainActivity.this, NotesAny.class);
         intent.putExtra("label", label);
         intent.putExtra("type", type.ordinal());
         startActivity(intent);

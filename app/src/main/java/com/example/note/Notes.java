@@ -33,7 +33,7 @@ public class Notes extends AppCompatActivity {
     private LinearLayout m_notesLayout;
     private Context m_notesContext;
     private TypeNote m_type;
-    private View.OnLongClickListener m_onClickLong;
+    private View.OnLongClickListener m_onLongClick;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,58 +44,6 @@ public class Notes extends AppCompatActivity {
 
         m_notesLayout = findViewById(R.id.notes);
         m_notesContext = m_notesLayout.getContext();
-
-        Intent intent = getIntent();
-
-        String label = intent.getStringExtra("label");
-
-        TextView labelView = findViewById(R.id.label_notes);
-
-        labelView.setText(label);
-
-        int type = intent.getIntExtra("type", -1);
-
-        Log.d("type", String.valueOf(type));
-
-        if (type != -1) {
-
-            m_type = values()[type];
-
-            int count = 0;
-
-            switch (m_type) {
-                case HEAD:
-                    count = Note.getHeadCount();
-
-                    m_onClickLong = this::onLongClickAddNoteHead;
-
-                    for (int i = 0; i < count; i++) {
-                        addNote(Note.getHeadNote(i));
-                    }
-
-                    break;
-                case TEMPLATE:
-                    count = Note.getTemplateCount();
-
-                    m_onClickLong = this::onLongClickAddNoteTemplate;
-
-                    for (int i = 0; i < count; i++) {
-                        addNote(Note.getTemplateNote(i));
-                    }
-
-                    break;
-                case DELETED:
-                    count = Note.getDeletedCount();
-
-                    m_onClickLong = this::onLongClickAddNoteDelete;
-
-                    for (int i = 0; i < count; i++) {
-                        addNote(Note.getDeletedNote(i));
-                    }
-
-                    break;
-            }
-        }
     }
 
     public void onClickEditNote(View view) {
@@ -103,7 +51,7 @@ public class Notes extends AppCompatActivity {
         Note note = (Note) noteLayout.getTag();
         Intent intent = new Intent(Notes.this, EditNote.class);
         intent.putExtra("label", "Edit note");
-        intent.putExtra("id_note", note.getId());
+        intent.putExtra("hash_note", note.getHash());
         intent.putExtra("type_note", note.getType().ordinal());
         addNoteLauncher.launch(intent);
     }
@@ -151,12 +99,22 @@ public class Notes extends AppCompatActivity {
         addNoteLauncher.launch(intent);
     }
 
+    public void onClickHistoryNote(View view) {
+        LinearLayout layout = (LinearLayout) view;
+        Note note = (Note) layout.getTag();
+        Intent intent = new Intent(Notes.this, History.class);
+        intent.putExtra("label", "History");
+        intent.putExtra("type", m_type.ordinal());
+        intent.putExtra("hash", note.getHash());
+        addNoteLauncher.launch(intent);
+    }
+
     private void handleNoteResult(ActivityResult result) {
         Log.d("test", "Return in Notes.java");
         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
-            int idNote = data.getIntExtra("id_note", -1);
+            String hashNote = data.getStringExtra("hash_note");
 
             int typeId = data.getIntExtra("type_note", -1);
 
@@ -171,18 +129,9 @@ public class Notes extends AppCompatActivity {
                 Note note = null;
                 Note noteOld = null;
 
-                if (idNote != -1) {
-                    switch (m_type) {
-                        case HEAD:
-                            noteOld = Note.getHeadNote(idNote);
-                            break;
-                        case TEMPLATE:
-                            noteOld = Note.getTemplateNote(idNote);
-                            break;
-                        case DELETED:
-                            noteOld = Note.getDeletedNote(idNote);
-                            break;
-                    }
+                if (hashNote != null) {
+
+                    noteOld = Note.getNote(hashNote);
 
                     note = new Note(name, content, type, noteOld);
 
@@ -201,7 +150,7 @@ public class Notes extends AppCompatActivity {
         }
     }
 
-    public void addNote(Note note) {
+    protected void addNote(Note note) {
         if (note != null) {
 
             LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
@@ -211,7 +160,7 @@ public class Notes extends AppCompatActivity {
 
             mainLayout.setTag(note);
 
-            mainLayout.setOnLongClickListener(m_onClickLong);
+            mainLayout.setOnLongClickListener(m_onLongClick);
 
             m_notesLayout.addView(mainLayout, 0);
 
@@ -265,7 +214,7 @@ public class Notes extends AppCompatActivity {
                     onClickAddNote(view);
                     return true;
                 case 4:
-                    // onClickHistoryNote(view);
+                    onClickHistoryNote(view);
                     return true;
                 case 5:
                     onClickEditNote(view);
@@ -303,7 +252,7 @@ public class Notes extends AppCompatActivity {
                     onClickAddNote(view);
                     return true;
                 case 4:
-                    // onClickHistoryNote(view);
+                    onClickHistoryNote(view);
                     return true;
                 case 5:
                     onClickEditNote(view);
@@ -340,7 +289,42 @@ public class Notes extends AppCompatActivity {
                     onClickHeadNote(view);
                     return true;
                 case 4:
-                    // onClickHistoryNote(view);
+                    onClickHistoryNote(view);
+                default:
+                    return false;
+            }
+        });
+
+        popup.show();
+
+        return true;
+    }
+
+    public boolean onLongClickHistoryNote(View view) {
+        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+
+        popup.getMenu().add(0, 1, 0, "Delete");
+        popup.getMenu().add(0, 2, 1, "Return as template");
+        popup.getMenu().add(0, 3, 2, "Return as note");
+        popup.getMenu().add(0, 4, 3, "New child");
+
+
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1: {
+                    onClickDeleteNote(view);
+                    return true;
+                }
+                case 2: {
+                    onClickTemplateNote(view);
+                    return true;
+                }
+                case 3:
+                    onClickHeadNote(view);
+                    return true;
+                case 4:
+                    onClickEditNote(view);
+                    return true;
                 default:
                     return false;
             }
@@ -413,5 +397,17 @@ public class Notes extends AppCompatActivity {
 
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
+    }
+
+    protected void setType(TypeNote type) {
+        m_type = type;
+    }
+
+    public TypeNote getType() {
+        return m_type;
+    }
+
+    protected void setOnClickLong(View.OnLongClickListener onLongClick) {
+        m_onLongClick = onLongClick;
     }
 }

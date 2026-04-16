@@ -18,7 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class EditNote extends AppCompatActivity {
     EditText m_name;
     EditText m_content;
-    int m_idNote;
+    String m_hashNote;
 
     TypeNote m_type;
 
@@ -39,7 +39,7 @@ public class EditNote extends AppCompatActivity {
 
         labelView.setText(label);
 
-        m_idNote = intent.getIntExtra("id_note", -1);
+        m_hashNote = intent.getStringExtra("hash_note");
 
 
         int type = intent.getIntExtra("type_note", -1);
@@ -47,24 +47,12 @@ public class EditNote extends AppCompatActivity {
         if (type != -1) {
             m_type = TypeNote.values()[type];
 
-            if (m_idNote != -1) {
+            if (m_hashNote != null) {
 
 
                 Note note = null;
 
-                switch (m_type) {
-                    case HEAD:
-                        note = Note.getHeadNote(m_idNote);
-                        break;
-                    case TEMPLATE:
-                        note = Note.getTemplateNote(m_idNote);
-                        break;
-                    case DELETED:
-                        note = Note.getDeletedNote(m_idNote);
-                        break;
-                    default:
-                        return;
-                }
+                note = Note.getNote(m_hashNote);
 
 
                 String name = note.getName();
@@ -89,7 +77,7 @@ public class EditNote extends AppCompatActivity {
         }
 
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("id_note", m_idNote);
+        returnIntent.putExtra("hash_note", m_hashNote);
         returnIntent.putExtra("type_note", m_type.ordinal());
         returnIntent.putExtra("name_note", name);
         returnIntent.putExtra("content_note", content);

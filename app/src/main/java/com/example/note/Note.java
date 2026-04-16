@@ -191,6 +191,10 @@ public class Note {
             m_parent = parent;
             m_isRenamed = isRenamed(parent);
             m_isEdited = isEdited(parent);
+            if (parent.m_type == TypeNote.HEAD) {
+                m_headsNotes.set(parent.m_indexNote, null);
+                UPDATE_HEADS();
+            }
         } else {
             m_isRenamed = false;
             m_isEdited = false;
@@ -337,10 +341,6 @@ public class Note {
         return m_deletedNotes.get(i);
     }
 
-    public int getId() {
-        return m_indexNote;
-    }
-
     public String getName() {
         return m_name;
     }
@@ -381,19 +381,21 @@ public class Note {
     }
 
     public void head() {
-        switch (m_type) {
-            case TEMPLATE:
-                if (m_templateNotes.get(m_indexNote) == this) {
-                    m_templateNotes.set(m_indexNote, null);
-                    UPDATE_TEMPLATE();
-                }
-                break;
-            case DELETED:
-                if (m_deletedNotes.get(m_indexNote) == this) {
-                    m_deletedNotes.set(m_indexNote, null);
-                    UPDATE_DELETED();
-                }
-                break;
+        if (m_type != null) {
+            switch (m_type) {
+                case TEMPLATE:
+                    if (m_templateNotes.get(m_indexNote) == this) {
+                        m_templateNotes.set(m_indexNote, null);
+                        UPDATE_TEMPLATE();
+                    }
+                    break;
+                case DELETED:
+                    if (m_deletedNotes.get(m_indexNote) == this) {
+                        m_deletedNotes.set(m_indexNote, null);
+                        UPDATE_DELETED();
+                    }
+                    break;
+            }
         }
         m_indexNote = m_headsNotes.size();
         m_headsNotes.add(this);
@@ -403,19 +405,21 @@ public class Note {
     }
 
     public void template() {
-        switch (m_type) {
-            case HEAD:
-                if (m_headsNotes.get(m_indexNote) == this) {
-                    m_headsNotes.set(m_indexNote, null);
-                    UPDATE_HEADS();
-                }
-                break;
-            case DELETED:
-                if (m_deletedNotes.get(m_indexNote) == this) {
-                    m_deletedNotes.set(m_indexNote, null);
-                    UPDATE_DELETED();
-                }
-                break;
+        if (m_type != null) {
+            switch (m_type) {
+                case HEAD:
+                    if (m_headsNotes.get(m_indexNote) == this) {
+                        m_headsNotes.set(m_indexNote, null);
+                        UPDATE_HEADS();
+                    }
+                    break;
+                case DELETED:
+                    if (m_deletedNotes.get(m_indexNote) == this) {
+                        m_deletedNotes.set(m_indexNote, null);
+                        UPDATE_DELETED();
+                    }
+                    break;
+            }
         }
         m_indexNote = m_templateNotes.size();
         m_templateNotes.add(this);
@@ -425,19 +429,21 @@ public class Note {
     }
 
     public void delete() {
-        switch (m_type) {
-            case HEAD:
-                if (m_headsNotes.get(m_indexNote) == this) {
-                    m_headsNotes.set(m_indexNote, null);
-                    UPDATE_HEADS();
-                }
-                break;
-            case TEMPLATE:
-                if (m_templateNotes.get(m_indexNote) == this) {
-                    m_templateNotes.set(m_indexNote, null);
-                    UPDATE_TEMPLATE();
-                }
-                break;
+        if (m_type != null) {
+            switch (m_type) {
+                case HEAD:
+                    if (m_headsNotes.get(m_indexNote) == this) {
+                        m_headsNotes.set(m_indexNote, null);
+                        UPDATE_HEADS();
+                    }
+                    break;
+                case TEMPLATE:
+                    if (m_templateNotes.get(m_indexNote) == this) {
+                        m_templateNotes.set(m_indexNote, null);
+                        UPDATE_TEMPLATE();
+                    }
+                    break;
+            }
         }
         m_indexNote = m_deletedNotes.size();
         m_deletedNotes.add(this);
@@ -448,27 +454,28 @@ public class Note {
 
 
     public void deleteForce() {
-        switch (m_type) {
-            case HEAD:
-                if (m_headsNotes.get(m_indexNote) == this) {
-                    m_headsNotes.set(m_indexNote, null);
-                    UPDATE_HEADS();
-                }
-                break;
-            case TEMPLATE:
-                if (m_templateNotes.get(m_indexNote) == this) {
-                    m_templateNotes.set(m_indexNote, null);
-                    UPDATE_TEMPLATE();
-                }
-                break;
-            case DELETED:
-                if (m_deletedNotes.get(m_indexNote) == this) {
-                    m_deletedNotes.set(m_indexNote, null);
-                    UPDATE_DELETED();
-                }
-                break;
+        if (m_type != null) {
+            switch (m_type) {
+                case HEAD:
+                    if (m_headsNotes.get(m_indexNote) == this) {
+                        m_headsNotes.set(m_indexNote, null);
+                        UPDATE_HEADS();
+                    }
+                    break;
+                case TEMPLATE:
+                    if (m_templateNotes.get(m_indexNote) == this) {
+                        m_templateNotes.set(m_indexNote, null);
+                        UPDATE_TEMPLATE();
+                    }
+                    break;
+                case DELETED:
+                    if (m_deletedNotes.get(m_indexNote) == this) {
+                        m_deletedNotes.set(m_indexNote, null);
+                        UPDATE_DELETED();
+                    }
+                    break;
+            }
         }
-
         String nameForPrefs = PREFIX + m_hash;
 
         m_context.getSharedPreferences(nameForPrefs, Context.MODE_PRIVATE)
@@ -502,5 +509,17 @@ public class Note {
 
     private static void setContext(Context context) {
         m_context = context;
+    }
+
+    public int  getIndex() {
+        return m_indexNote;
+    }
+
+    public static Note getNote(String hash) {
+        return m_allNotes.get(hash);
+    }
+
+    public String getHash() {
+        return m_hash;
     }
 }
