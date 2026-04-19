@@ -5,7 +5,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,10 +12,6 @@ import com.example.note.databinding.ActivityMainBinding;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
-    // Used to load the 'note' library on application startup.
-    static {
-        System.loadLibrary("note");
-    }
 
     private ActivityMainBinding m_binding;
 
@@ -31,22 +26,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void onClickNotes(String label, TypeNote type) {
-        Intent intent = new Intent(MainActivity.this, NotesAny.class);
-        intent.putExtra("label", label);
-        intent.putExtra("type", type.ordinal());
+    public void onClickNotes(View view) {
+        Intent intent = new Intent(MainActivity.this, NotesHeads.class);
         startActivity(intent);
     }
 
-    public void onClickNotes(View view) {
-        onClickNotes("Notes", TypeNote.HEAD);
-    }
-
     public void onClickTemplate(View view) {
-        onClickNotes("Templates", TypeNote.TEMPLATE);
+        Intent intent = new Intent(MainActivity.this, NotesTemplate.class);
+        startActivity(intent);
     }
 
     public void onClickDeleted(View view) {
-        onClickNotes("Deleted", TypeNote.DELETED);
+        Intent intent = new Intent(MainActivity.this, NotesDelete.class);
+        startActivity(intent);
     }
 }

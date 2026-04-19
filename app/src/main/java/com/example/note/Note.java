@@ -169,6 +169,7 @@ public class Note {
         m_isEdited = false;
         m_type = type;
         updateHash();
+        m_allNotes.put(m_hash, this);
         switch (type) {
             case HEAD:
                 head();
@@ -201,6 +202,9 @@ public class Note {
         }
 
         updateHash();
+
+        m_allNotes.put(m_hash, this);
+
         switch (type) {
             case HEAD:
                 head();
@@ -360,7 +364,7 @@ public class Note {
     }
 
     public boolean isRenamed(Note note) {
-        return !m_name.equals(note.m_name);
+        return !m_name.equals(note.m_name) || note.m_isRenamed;
     }
 
     public boolean isEdited() {
@@ -372,7 +376,7 @@ public class Note {
     }
 
     public boolean isEdited(Note note) {
-        return !m_content.equals(note.m_content);
+        return !m_content.equals(note.m_content) || note.m_isEdited;
     }
 
 
@@ -511,12 +515,14 @@ public class Note {
         m_context = context;
     }
 
-    public int  getIndex() {
+    public int getIndex() {
         return m_indexNote;
     }
 
     public static Note getNote(String hash) {
-        return m_allNotes.get(hash);
+        if (hash != null)
+            return m_allNotes.get(hash);
+        return null;
     }
 
     public String getHash() {

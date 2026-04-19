@@ -5,34 +5,73 @@ import static com.example.note.TypeNote.*;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.CallSuper;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.Space;
 import android.widget.TextView;
 
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class Notes extends AppCompatActivity {
-    private final ActivityResultLauncher<Intent> addNoteLauncher = registerForActivityResult(
+public abstract class Notes extends AppCompatActivity {
+    public class InterceptableLinearLayout extends LinearLayout {
+        private GestureDetector gestureDetector;
+
+        public InterceptableLinearLayout(Context context) {
+            super(context);
+            gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onDown(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+                    performLongClick();
+                }
+
+                @Override
+                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                    return false;
+                }
+            });
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(MotionEvent ev) {
+            gestureDetector.onTouchEvent(ev);
+            if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
+                getParent().requestDisallowInterceptTouchEvent(false);
+            }
+            return false;
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            return gestureDetector.onTouchEvent(event) || super.onTouchEvent(event);
+        }
+    }
+
+    protected final ActivityResultLauncher<Intent> launcher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> handleNoteResult(result)
     );
 
     private LinearLayout m_notesLayout;
     private Context m_notesContext;
-    private TypeNote m_type;
     private View.OnLongClickListener m_onLongClick;
 
     @Override
@@ -40,7 +79,6 @@ public class Notes extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.notes);
-
 
         m_notesLayout = findViewById(R.id.notes);
         m_notesContext = m_notesLayout.getContext();
@@ -53,7 +91,7 @@ public class Notes extends AppCompatActivity {
         intent.putExtra("label", "Edit note");
         intent.putExtra("hash_note", note.getHash());
         intent.putExtra("type_note", note.getType().ordinal());
-        addNoteLauncher.launch(intent);
+        launcher.launch(intent);
     }
 
     public void onClickHeadNote(View view) {
@@ -92,71 +130,26 @@ public class Notes extends AppCompatActivity {
         m_notesLayout.removeView(noteLayout);
     }
 
-    public void onClickAddNote(View view) {
-        Intent intent = new Intent(Notes.this, EditNote.class);
-        intent.putExtra("label", "New note");
-        intent.putExtra("type_note", m_type.ordinal());
-        addNoteLauncher.launch(intent);
-    }
-
     public void onClickHistoryNote(View view) {
         LinearLayout layout = (LinearLayout) view;
         Note note = (Note) layout.getTag();
         Intent intent = new Intent(Notes.this, History.class);
-        intent.putExtra("label", "History");
-        intent.putExtra("type", m_type.ordinal());
         intent.putExtra("hash", note.getHash());
-        addNoteLauncher.launch(intent);
+        launcher.launch(intent);
     }
 
-    private void handleNoteResult(ActivityResult result) {
-        Log.d("test", "Return in Notes.java");
-        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-            Intent data = result.getData();
+    abstract protected void handleNoteResult(ActivityResult result);
 
-            String hashNote = data.getStringExtra("hash_note");
+    abstract protected void allUpdate();
 
-            int typeId = data.getIntExtra("type_note", -1);
-
-
-            String name = data.getStringExtra("name_note");
-            String content = data.getStringExtra("content_note");
-
-
-            if (typeId != -1) {
-                TypeNote type = TypeNote.values()[typeId];
-
-                Note note = null;
-                Note noteOld = null;
-
-                if (hashNote != null) {
-
-                    noteOld = Note.getNote(hashNote);
-
-                    note = new Note(name, content, type, noteOld);
-
-                    View view = m_notesLayout.findViewWithTag(noteOld);
-
-                    m_notesLayout.removeView(view);
-                } else {
-                    note = new Note(name, content, type);
-                }
-                Log.d("type", note.getContent());
-                Log.d("test", "Type: " + type + " vs M_Type: " + m_type);
-                if (type == m_type) {
-                    addNote(note);
-                }
-            }
-        }
+    protected void clearNotes() {
+        m_notesLayout.removeAllViews();
     }
 
     protected void addNote(Note note) {
         if (note != null) {
 
             LinearLayout mainLayout = createLinearLayoutNote(m_notesContext, LinearLayout.VERTICAL);
-
-            mainLayout.setClickable(true);
-            mainLayout.setFocusable(true);
 
             mainLayout.setTag(note);
 
@@ -191,150 +184,6 @@ public class Notes extends AppCompatActivity {
         }
     }
 
-    public boolean onLongClickAddNoteHead(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
-
-        popup.getMenu().add(0, 1, 0, "Delete");
-        popup.getMenu().add(0, 2, 1, "Template");
-        popup.getMenu().add(0, 3, 2, "Create");
-        popup.getMenu().add(0, 4, 3, "History");
-        popup.getMenu().add(0, 5, 4, "Edit");
-
-        popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1: {
-                    onClickDeleteNote(view);
-                    return true;
-                }
-                case 2: {
-                    onClickTemplateNote(view);
-                    return true;
-                }
-                case 3:
-                    onClickAddNote(view);
-                    return true;
-                case 4:
-                    onClickHistoryNote(view);
-                    return true;
-                case 5:
-                    onClickEditNote(view);
-                    return true;
-                default:
-                    return false;
-            }
-        });
-
-        popup.show();
-
-        return true;
-    }
-
-    public boolean onLongClickAddNoteTemplate(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
-
-        popup.getMenu().add(0, 1, 0, "Delete");
-        popup.getMenu().add(0, 2, 1, "Move to note");
-        popup.getMenu().add(0, 3, 2, "Create");
-        popup.getMenu().add(0, 4, 3, "History");
-        popup.getMenu().add(0, 5, 4, "Edit");
-
-        popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1: {
-                    onClickDeleteNote(view);
-                    return true;
-                }
-                case 2: {
-                    onClickHeadNote(view);
-                    return true;
-                }
-                case 3:
-                    onClickAddNote(view);
-                    return true;
-                case 4:
-                    onClickHistoryNote(view);
-                    return true;
-                case 5:
-                    onClickEditNote(view);
-                    return true;
-                default:
-                    return false;
-            }
-        });
-
-        popup.show();
-
-        return true;
-    }
-
-    public boolean onLongClickAddNoteDelete(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
-
-        popup.getMenu().add(0, 1, 0, "Delete permanently");
-        popup.getMenu().add(0, 2, 1, "Return as template");
-        popup.getMenu().add(0, 3, 1, "Return as note");
-        popup.getMenu().add(0, 4, 3, "History");
-
-        popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1: {
-                    onClickDeletePermanentlyNote(view);
-                    return true;
-                }
-                case 2: {
-                    onClickTemplateNote(view);
-                    return true;
-                }
-                case 3:
-                    onClickHeadNote(view);
-                    return true;
-                case 4:
-                    onClickHistoryNote(view);
-                default:
-                    return false;
-            }
-        });
-
-        popup.show();
-
-        return true;
-    }
-
-    public boolean onLongClickHistoryNote(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
-
-        popup.getMenu().add(0, 1, 0, "Delete");
-        popup.getMenu().add(0, 2, 1, "Return as template");
-        popup.getMenu().add(0, 3, 2, "Return as note");
-        popup.getMenu().add(0, 4, 3, "New child");
-
-
-        popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case 1: {
-                    onClickDeleteNote(view);
-                    return true;
-                }
-                case 2: {
-                    onClickTemplateNote(view);
-                    return true;
-                }
-                case 3:
-                    onClickHeadNote(view);
-                    return true;
-                case 4:
-                    onClickEditNote(view);
-                    return true;
-                default:
-                    return false;
-            }
-        });
-
-        popup.show();
-
-        return true;
-    }
-
     private LinearLayout createLinearLayoutFooter(Context parent, int orientation) {
         LinearLayout layout = createLinearLayoutNote(parent, orientation);
 
@@ -343,12 +192,17 @@ public class Notes extends AppCompatActivity {
         return layout;
     }
     private LinearLayout createLinearLayoutNote(Context parent, int orientation) {
-        LinearLayout layout = new LinearLayout(parent);
+        LinearLayout layout = new InterceptableLinearLayout(parent);
         layout.setId(View.generateViewId());
         layout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         layout.setOrientation(orientation);
+
+        layout.setAddStatesFromChildren(true);
+
+        layout.setLongClickable(true);
+
         return layout;
     }
 
@@ -359,6 +213,7 @@ public class Notes extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT));
         textView.setTextSize(textSize);
         textView.setText(text);
+
         return textView;
     }
 
@@ -378,6 +233,23 @@ public class Notes extends AppCompatActivity {
         textView.setMovementMethod(new ScrollingMovementMethod());
 
         textView.setVerticalScrollBarEnabled(true);
+
+        textView.setLongClickable(false);
+
+        textView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (v.canScrollVertically(1) || v.canScrollVertically(-1)) {
+                    v.getParent().requestDisallowInterceptTouchEvent(true);
+
+                    if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                    }
+                }
+                return false;
+            }
+        });
+
         return textView;
     }
 
@@ -399,15 +271,26 @@ public class Notes extends AppCompatActivity {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
-    protected void setType(TypeNote type) {
-        m_type = type;
-    }
-
-    public TypeNote getType() {
-        return m_type;
-    }
-
-    protected void setOnClickLong(View.OnLongClickListener onLongClick) {
+    protected void setOnLongClick(View.OnLongClickListener onLongClick) {
         m_onLongClick = onLongClick;
+    }
+
+    public LinearLayout getNotesLayout() {
+        return m_notesLayout;
+    }
+
+    protected void setLabelActivity(String label) {
+        TextView labelView = findViewById(R.id.label_notes);
+        labelView.setText(label);
+    }
+
+    protected void hideButtonAdd() {
+        Button addButton = findViewById(R.id.button_add);
+        addButton.setVisibility(View.GONE);
+    }
+
+    protected void showButtonAdd() {
+        Button addButton = findViewById(R.id.button_add);
+        addButton.setVisibility(View.VISIBLE);
     }
 }

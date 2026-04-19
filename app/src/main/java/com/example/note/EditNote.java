@@ -41,27 +41,20 @@ public class EditNote extends AppCompatActivity {
 
         m_hashNote = intent.getStringExtra("hash_note");
 
-
-        int type = intent.getIntExtra("type_note", -1);
-
-        if (type != -1) {
-            m_type = TypeNote.values()[type];
-
-            if (m_hashNote != null) {
+        if (m_hashNote != null) {
 
 
-                Note note = null;
+            Note note = null;
 
-                note = Note.getNote(m_hashNote);
+            note = Note.getNote(m_hashNote);
 
 
-                String name = note.getName();
+            String name = note.getName();
 
-                String content = note.getContent();
+            String content = note.getContent();
 
-                m_name.setText(name);
-                m_content.setText(content);
-            }
+            m_name.setText(name);
+            m_content.setText(content);
         }
     }
 
@@ -78,7 +71,6 @@ public class EditNote extends AppCompatActivity {
 
         Intent returnIntent = new Intent();
         returnIntent.putExtra("hash_note", m_hashNote);
-        returnIntent.putExtra("type_note", m_type.ordinal());
         returnIntent.putExtra("name_note", name);
         returnIntent.putExtra("content_note", content);
         setResult(Activity.RESULT_OK, returnIntent);
