@@ -16,7 +16,7 @@ public class NotesTemplate extends NotesBase {
 
         showButtonAdd();
 
-        setLabelActivity("Heads");
+        setLabelActivity("Template");
 
         allUpdate();
     }

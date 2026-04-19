@@ -70,7 +70,7 @@ public class EditNote extends AppCompatActivity {
         }
 
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("hash_note", m_hashNote);
+        returnIntent.putExtra("hash_parent", m_hashNote);
         returnIntent.putExtra("name_note", name);
         returnIntent.putExtra("content_note", content);
         setResult(Activity.RESULT_OK, returnIntent);
