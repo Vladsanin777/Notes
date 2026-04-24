@@ -65,7 +65,7 @@ public class EditNote extends AppCompatActivity {
         String content = m_content.getText().toString();
 
         if (name.isEmpty() && content.isEmpty()) {
-            Toast.makeText(this, "Note is Empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.empty_note), Toast.LENGTH_SHORT).show();
             return;
         }
 

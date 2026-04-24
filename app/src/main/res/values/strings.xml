@@ -1,3 +1,23 @@
 <resources>
-    <string name="app_name">Note</string>
+    <string name="app_name">"Notes"</string>
+    <string name="renamed">"renamed"</string>
+    <string name="edited">"edited"</string>
+    <string name="history">"History"</string>
+    <string name="delete">"Delete"</string>
+    <string name="return_as_template">"Return as template"</string>
+    <string name="return_as_note">"Return as note"</string>
+    <string name="edit">"Edit"</string>
+    <string name="new_note">"New note"</string>
+    <string name="deleted">"Deleted"</string>
+    <string name="delete_permanently">"Delete permanently"</string>
+    <string name="notes">"Notes"</string>
+    <string name="template">"Template"</string>
+    <string name="create">"Create"</string>
+    <string name="empty_note">"Empty note"</string>
+    <string name="move_to_note">"Move to note"</string>
+    <string name="cancel">"Cancel"</string>
+    <string name="apply">"Apply"</string>
+    <string name="name_this_note">"Name this note!!!"</string>
+    <string name="context_this_note">"Context this note!!!"</string>
+    <string name="plus">"+"</string>
 </resources>

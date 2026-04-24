@@ -16,7 +16,7 @@ public class NotesHeads extends NotesBase {
 
         showButtonAdd();
 
-        setLabelActivity("Notes");
+        setLabelActivity(getString(R.string.notes));
 
         allUpdate();
     }
@@ -35,11 +35,11 @@ public class NotesHeads extends NotesBase {
     public boolean onLongClickAddNoteHead(View view) {
         PopupMenu popup = new PopupMenu(getApplicationContext(), view);
 
-        popup.getMenu().add(0, 1, 0, "Delete");
-        popup.getMenu().add(0, 2, 1, "Template");
-        popup.getMenu().add(0, 3, 2, "Create");
-        popup.getMenu().add(0, 4, 3, "History");
-        popup.getMenu().add(0, 5, 4, "Edit");
+        popup.getMenu().add(0, 1, 0, getString(R.string.delete));
+        popup.getMenu().add(0, 2, 1, getString(R.string.template));
+        popup.getMenu().add(0, 3, 2, getString(R.string.create));
+        popup.getMenu().add(0, 4, 3, getString(R.string.history));
+        popup.getMenu().add(0, 5, 4, getString(R.string.edit));
 
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -75,6 +75,6 @@ public class NotesHeads extends NotesBase {
 
     @Override
     protected Note createNote(String name, String content, Note parent) {
-        return new Note(name, content, TypeNote.HEAD);
+        return new Note(name, content, TypeNote.HEAD, parent);
     }
 }

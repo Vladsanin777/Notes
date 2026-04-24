@@ -18,13 +18,12 @@ import androidx.annotation.RequiresApi;
 abstract public class NotesBase extends Notes {
     public void onClickAddNote(View view) {
         Intent intent = new Intent(this, EditNote.class);
-        intent.putExtra("label", "New note");
+        intent.putExtra("label", getString(R.string.new_note));
         launcher.launch(intent);
     }
 
     @Override
     protected void handleNoteResult(ActivityResult result) {
-        Log.d("test", "Return in Notes.java");
         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
@@ -43,8 +42,6 @@ abstract public class NotesBase extends Notes {
 
             if (name != null || content != null) {
                 if (noteOld != null) {
-                    noteOld = Note.getNote(hashParent);
-
                     note = createNote(name, content, noteOld);
 
                     View view = getNotesLayout().findViewWithTag(noteOld);

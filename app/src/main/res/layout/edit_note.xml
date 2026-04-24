@@ -22,7 +22,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/text_new_note"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:textSize="24sp"
             android:onClick="onClickBack"
             tools:ignore="onClick"/>
@@ -44,7 +44,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@id/text_new_note"
             app:layout_constraintRight_toRightOf="parent"
-            android:text="Apply"
+            android:text="@string/apply"
             android:textSize="24sp"
             android:onClick="onClickApply"
             tools:ignore="onClick"/>
@@ -62,7 +62,7 @@
         android:scrollbars="vertical"
         android:maxLines="4"
         android:textSize="32sp"
-        android:hint="Name this Note!"/>
+        android:hint="@string/name_this_note"/>
     <Space
         android:id="@+id/space_betwen_name_and_content_note"
         android:layout_width="match_parent"
@@ -80,5 +80,5 @@
         android:inputType="textMultiLine"
         android:scrollbars="vertical"
         android:textSize="24sp"
-        android:hint="Context this Note!"/>
+        android:hint="@string/context_this_note"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

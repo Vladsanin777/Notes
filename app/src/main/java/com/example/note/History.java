@@ -27,7 +27,7 @@ public class History extends Notes {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setLabelActivity("History");
+        setLabelActivity(getString(R.string.history));
 
         hideButtonAdd();
 
@@ -42,7 +42,6 @@ public class History extends Notes {
 
     @Override
     protected void handleNoteResult(ActivityResult result) {
-        Log.d("test", "Return in Notes.java");
         if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
@@ -106,10 +105,10 @@ public class History extends Notes {
     protected boolean onLongClickHistoryNote(View view) {
         PopupMenu popup = new PopupMenu(getApplicationContext(), view);
 
-        popup.getMenu().add(0, 1, 0, "Delete");
-        popup.getMenu().add(0, 2, 1, "Return as template");
-        popup.getMenu().add(0, 3, 2, "Return as note");
-        popup.getMenu().add(0, 4, 3, "New child");
+        popup.getMenu().add(0, 1, 0, getString(R.string.delete));
+        popup.getMenu().add(0, 2, 1, getString(R.string.return_as_template));
+        popup.getMenu().add(0, 3, 2, getString(R.string.return_as_note));
+        popup.getMenu().add(0, 4, 3, getString(R.string.edit));
 
 
         popup.setOnMenuItemClickListener(item -> {

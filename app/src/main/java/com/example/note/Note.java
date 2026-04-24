@@ -103,7 +103,15 @@ public class Note {
         if (hashs != null) {
             for (String hash : hashs) {
                 Log.d("hash", hash);
-                list.add(m_allNotes.get(hash.substring(5)));
+
+                Note note = m_allNotes.get(hash.substring(5));
+
+                if (note != null) {
+
+                    note.m_indexNote = list.size();
+
+                    list.add(note);
+                }
             }
         }
     }
@@ -167,7 +175,6 @@ public class Note {
         m_time = now();
         m_isRenamed = false;
         m_isEdited = false;
-        m_type = type;
         updateHash();
         m_allNotes.put(m_hash, this);
         switch (type) {
@@ -300,7 +307,6 @@ public class Note {
     }
 
     private void serialize() {
-        Log.d("serialize", m_hash);
         if (m_hash != null) {
 
             SharedPreferences prefs = m_context.getSharedPreferences(PREFIX + m_hash, Context.MODE_PRIVATE);
@@ -387,6 +393,8 @@ public class Note {
     public void head() {
         if (m_type != null) {
             switch (m_type) {
+                case HEAD:
+                    return;
                 case TEMPLATE:
                     if (m_templateNotes.get(m_indexNote) == this) {
                         m_templateNotes.set(m_indexNote, null);
@@ -417,6 +425,8 @@ public class Note {
                         UPDATE_HEADS();
                     }
                     break;
+                case TEMPLATE:
+                    return;
                 case DELETED:
                     if (m_deletedNotes.get(m_indexNote) == this) {
                         m_deletedNotes.set(m_indexNote, null);
@@ -447,6 +457,8 @@ public class Note {
                         UPDATE_TEMPLATE();
                     }
                     break;
+                case DELETED:
+                    return;
             }
         }
         m_indexNote = m_deletedNotes.size();
@@ -520,9 +532,7 @@ public class Note {
     }
 
     public static Note getNote(String hash) {
-        if (hash != null)
-            return m_allNotes.get(hash);
-        return null;
+        return m_allNotes.get(hash);
     }
 
     public String getHash() {

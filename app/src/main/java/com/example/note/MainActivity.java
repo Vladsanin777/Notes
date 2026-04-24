@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickDeleted(View view) {
-        Intent intent = new Intent(MainActivity.this, NotesDelete.class);
+        Intent intent = new Intent(MainActivity.this, NotesDeleted.class);
         startActivity(intent);
     }
 }

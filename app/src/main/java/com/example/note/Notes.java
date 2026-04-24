@@ -14,10 +14,14 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Space;
@@ -26,44 +30,6 @@ import android.widget.TextView;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public abstract class Notes extends AppCompatActivity {
-    public class InterceptableLinearLayout extends LinearLayout {
-        private GestureDetector gestureDetector;
-
-        public InterceptableLinearLayout(Context context) {
-            super(context);
-            gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onDown(MotionEvent e) {
-                    return true;
-                }
-
-                @Override
-                public void onLongPress(MotionEvent e) {
-                    performLongClick();
-                }
-
-                @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                    return false;
-                }
-            });
-        }
-
-        @Override
-        public boolean onInterceptTouchEvent(MotionEvent ev) {
-            gestureDetector.onTouchEvent(ev);
-            if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
-                getParent().requestDisallowInterceptTouchEvent(false);
-            }
-            return false;
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            return gestureDetector.onTouchEvent(event) || super.onTouchEvent(event);
-        }
-    }
 
     protected final ActivityResultLauncher<Intent> launcher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -90,7 +56,6 @@ public abstract class Notes extends AppCompatActivity {
         Intent intent = new Intent(Notes.this, EditNote.class);
         intent.putExtra("label", "Edit note");
         intent.putExtra("hash_note", note.getHash());
-        intent.putExtra("type_note", note.getType().ordinal());
         launcher.launch(intent);
     }
 
@@ -172,11 +137,11 @@ public abstract class Notes extends AppCompatActivity {
 
             Context footerLayoutContext = footerLayout.getContext();
 
-            footerLayout.addView(createTextView(footerLayoutContext, "renamed", 12, note.isRenamed()));
+            footerLayout.addView(createTextView(footerLayoutContext, getString(R.string.renamed), 12, note.isRenamed()));
 
             footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
-            footerLayout.addView(createTextView(footerLayoutContext, "edited", 12, note.isEdited()));
+            footerLayout.addView(createTextView(footerLayoutContext, getString(R.string.edited), 12, note.isEdited()));
 
             footerLayout.addView(createHorizontalSpace(footerLayoutContext, 12));
 
@@ -189,19 +154,18 @@ public abstract class Notes extends AppCompatActivity {
 
         layout.setGravity(Gravity.END);
 
+        layout.setOnLongClickListener(Notes::onLongClickParent);
+
+
         return layout;
     }
     private LinearLayout createLinearLayoutNote(Context parent, int orientation) {
-        LinearLayout layout = new InterceptableLinearLayout(parent);
-        layout.setId(View.generateViewId());
+        LinearLayout layout = new LinearLayout(parent);
         layout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         layout.setOrientation(orientation);
 
-        layout.setAddStatesFromChildren(true);
-
-        layout.setLongClickable(true);
 
         return layout;
     }
@@ -213,6 +177,12 @@ public abstract class Notes extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT));
         textView.setTextSize(textSize);
         textView.setText(text);
+
+        textView.setLongClickable(false);
+        textView.setClickable(false);
+
+        textView.setOnLongClickListener(Notes::onLongClickParent);
+
 
         return textView;
     }
@@ -234,37 +204,32 @@ public abstract class Notes extends AppCompatActivity {
 
         textView.setVerticalScrollBarEnabled(true);
 
-        textView.setLongClickable(false);
-
-        textView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (v.canScrollVertically(1) || v.canScrollVertically(-1)) {
-                    v.getParent().requestDisallowInterceptTouchEvent(true);
-
-                    if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
-                        v.getParent().requestDisallowInterceptTouchEvent(false);
-                    }
-                }
-                return false;
-            }
-        });
 
         return textView;
     }
 
-    private Space createVertacalSpace(Context parent, int dp) {
+    private Space createSpace(Context parent, int pxw, int pxh) {
         Space space = new Space(parent);
-        int px = dpToPx(dp);
-        space.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, px));
+        space.setLayoutParams(new LinearLayout.LayoutParams(pxw, pxh));
+        space.setOnLongClickListener(Notes::onLongClickParent);
+
         return space;
+    }
+    private Space createVertacalSpace(Context parent, int dp) {
+        return createSpace(parent, LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(dp));
     }
 
     private Space createHorizontalSpace(Context parent, int dp) {
-        Space space = new Space(parent);
-        int px = dpToPx(dp);
-        space.setLayoutParams(new LinearLayout.LayoutParams(px, LinearLayout.LayoutParams.MATCH_PARENT));
-        return space;
+        return createSpace(parent, dpToPx(dp), LinearLayout.LayoutParams.MATCH_PARENT);
+    }
+
+    public static boolean onLongClickParent(View view) {
+        ViewParent viewParent = view.getParent();
+        if (view.getParent() instanceof View) {
+            View parent = (View) viewParent;
+            parent.performLongClick();
+        }
+        return false;
     }
 
     private int dpToPx(int dp) {

@@ -4,19 +4,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class NotesDelete extends NotesBase {
+public class NotesDeleted extends NotesBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         hideButtonAdd();
 
-        setLabelActivity("Delete");
+        setLabelActivity(getString(R.string.deleted));
 
         allUpdate();
     }
@@ -35,10 +34,10 @@ public class NotesDelete extends NotesBase {
     public boolean onLongClickAddNoteDelete(View view) {
         PopupMenu popup = new PopupMenu(getApplicationContext(), view);
 
-        popup.getMenu().add(0, 1, 0, "Delete permanently");
-        popup.getMenu().add(0, 2, 1, "Return as template");
-        popup.getMenu().add(0, 3, 1, "Return as note");
-        popup.getMenu().add(0, 4, 3, "History");
+        popup.getMenu().add(0, 1, 0, getString(R.string.delete_permanently));
+        popup.getMenu().add(0, 2, 1, getString(R.string.return_as_template));
+        popup.getMenu().add(0, 3, 1, getString(R.string.return_as_note));
+        popup.getMenu().add(0, 4, 3, getString(R.string.history));
 
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -67,11 +66,11 @@ public class NotesDelete extends NotesBase {
 
     @Override
     protected Note createNote(String name, String content) {
-        return new Note(name, content, TypeNote.DELETED);
+        return null;
     }
 
     @Override
     protected Note createNote(String name, String content, Note parent) {
-        return new Note(name, content, TypeNote.DELETED);
+        return null;
     }
 }

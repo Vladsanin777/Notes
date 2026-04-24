@@ -30,16 +30,16 @@
             android:exported="false"
             tools:ignore="NewApi"/>
         <activity
-            android:name=".NotesDelete"
-            android:exported="true"
+            android:name=".NotesDeleted"
+            android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".NotesTemplate"
-            android:exported="true"
+            android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".NotesHeads"
-            android:exported="true"
+            android:exported="false"
             tools:ignore="NewApi"/>
     </application>
 
