@@ -20,4 +20,5 @@
     <string name="name_this_note">"Name this note!!!"</string>
     <string name="context_this_note">"Context this note!!!"</string>
     <string name="plus">"+"</string>
+    <string name="edit_note">"Edit note"</string>
 </resources>

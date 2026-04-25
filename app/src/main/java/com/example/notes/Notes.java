@@ -47,7 +47,7 @@ public abstract class Notes extends AppCompatActivity {
         LinearLayout noteLayout = (LinearLayout) view;
         Note note = (Note) noteLayout.getTag();
         Intent intent = new Intent(Notes.this, EditNote.class);
-        intent.putExtra("label", "Edit note");
+        intent.putExtra("label", R.string.edit_note);
         intent.putExtra("hash_note", note.getHash());
         launcher.launch(intent);
     }
