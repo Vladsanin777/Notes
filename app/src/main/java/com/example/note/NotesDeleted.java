@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.PopupMenu;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.view.ContextThemeWrapper;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class NotesDeleted extends NotesBase {
@@ -32,7 +33,9 @@ public class NotesDeleted extends NotesBase {
     }
 
     public boolean onLongClickAddNoteDelete(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+        ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.CustomPopupMenu);
+
+        PopupMenu popup = new PopupMenu(wrapper, view);
 
         popup.getMenu().add(0, 1, 0, getString(R.string.delete_permanently));
         popup.getMenu().add(0, 2, 1, getString(R.string.return_as_template));

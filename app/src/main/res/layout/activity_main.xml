@@ -8,10 +8,23 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <Space
-        android:id="@+id/top_space"
+    <com.example.note.WaveView
+        android:id="@+id/wave_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:amplitudeRatio="0.05"
+        app:behindWaveColor="@color/wave_behind_main"
+        app:frontWaveColor="@color/wave_front_main"
+        app:waveWaterLevel="0.5"
+        app:waveShapef="square"/>
+
+    <TextView
+        android:id="@+id/app_name"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:textSize="32sp"
+        android:text="@string/app_name"
+        android:gravity="center"
         app:layout_constraintHeight_percent="0.2"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -23,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintHeight_percent="0.40"
-        app:layout_constraintTop_toBottomOf="@id/top_space"
+        app:layout_constraintTop_toBottomOf="@id/app_name"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/notes">
@@ -31,7 +44,7 @@
             android:id="@+id/deleted_note"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/rounded_bg"
+            android:background="@drawable/rounded_bg_main"
             android:text="@string/deleted"
             android:layout_margin="20dp"
             app:layout_constraintHorizontal_chainStyle="spread"
@@ -46,7 +59,7 @@
             android:id="@+id/template_note"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/rounded_bg"
+            android:background="@drawable/rounded_bg_main"
             android:text="@string/template"
             android:layout_margin="20dp"
             app:layout_constraintHorizontal_chainStyle="spread"
@@ -64,7 +77,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:text="@string/notes"
-        android:background="@drawable/rounded_bg"
+        android:background="@drawable/rounded_bg_main"
         android:layout_margin="20dp"
         app:layout_constraintHeight_percent="0.30"
         app:layout_constraintTop_toBottomOf="@id/center_layout"

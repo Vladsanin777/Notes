@@ -12,7 +12,6 @@ import com.example.note.databinding.ActivityMainBinding;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
-
     private ActivityMainBinding m_binding;
 
     @Override
@@ -23,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(m_binding.getRoot());
 
         Note.INIT(getApplicationContext());
-
     }
 
     public void onClickNotes(View view) {

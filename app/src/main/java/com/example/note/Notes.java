@@ -1,11 +1,8 @@
 package com.example.note;
 
-import static com.example.note.TypeNote.*;
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.CallSuper;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,13 +11,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.GestureDetector;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -150,7 +143,7 @@ public abstract class Notes extends AppCompatActivity {
     }
 
     private LinearLayout createLinearLayoutFooter(Context parent, int orientation) {
-        LinearLayout layout = createLinearLayoutNote(parent, orientation);
+        LinearLayout layout = createLinearLayout(parent, orientation);
 
         layout.setGravity(Gravity.END);
 
@@ -159,7 +152,21 @@ public abstract class Notes extends AppCompatActivity {
 
         return layout;
     }
+
     private LinearLayout createLinearLayoutNote(Context parent, int orientation) {
+        LinearLayout layout = createLinearLayout(parent, orientation);
+
+        layout.setBackground(getDrawable(R.drawable.rounded_bg_notes));
+
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) layout.getLayoutParams();
+
+        params.setMargins(dpToPx(5), dpToPx(3), dpToPx(5), dpToPx(3));
+
+        layout.setLayoutParams(params);
+
+        return layout;
+    }
+    private LinearLayout createLinearLayout(Context parent, int orientation) {
         LinearLayout layout = new LinearLayout(parent);
         layout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -257,5 +264,9 @@ public abstract class Notes extends AppCompatActivity {
     protected void showButtonAdd() {
         Button addButton = findViewById(R.id.button_add);
         addButton.setVisibility(View.VISIBLE);
+    }
+
+    public void onClickBack(View view) {
+        finish();
     }
 }
