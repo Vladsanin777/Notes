@@ -10,6 +10,7 @@ import android.widget.PopupMenu;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.view.ContextThemeWrapper;
 
 import java.util.ArrayList;
 
@@ -98,7 +99,9 @@ public class History extends Notes {
     }
 
     protected boolean onLongClickHistoryNote(View view) {
-        PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+        ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.CustomPopupMenu);
+
+        PopupMenu popup = new PopupMenu(wrapper, view);
 
         popup.getMenu().add(0, 1, 0, getString(R.string.delete));
         popup.getMenu().add(0, 2, 1, getString(R.string.return_as_template));
