@@ -1,4 +1,4 @@
-package com.example.note;
+package com.example.notes;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;

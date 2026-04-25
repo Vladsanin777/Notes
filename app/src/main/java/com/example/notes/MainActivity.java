@@ -1,4 +1,4 @@
-package com.example.note;
+package com.example.notes;
 
 import android.content.Intent;
 import android.os.Build;
@@ -8,7 +8,7 @@ import android.view.View;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.note.databinding.ActivityMainBinding;
+import com.example.notes.databinding.ActivityMainBinding;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {

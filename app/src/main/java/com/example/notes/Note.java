@@ -1,4 +1,4 @@
-package com.example.note;
+package com.example.notes;
 
 
 import android.content.Context;
@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.example.note.TypeNote.*;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class Note {

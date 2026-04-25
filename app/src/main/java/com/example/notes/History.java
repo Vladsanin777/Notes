@@ -1,17 +1,12 @@
-package com.example.note;
+package com.example.notes;
 
-import static com.example.note.TypeNote.values;
+import static com.example.notes.TypeNote.values;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.PopupMenu;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.RequiresApi;
@@ -42,7 +37,7 @@ public class History extends Notes {
 
     @Override
     protected void handleNoteResult(ActivityResult result) {
-        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
             boolean isAllUpdate = data.getBooleanExtra("all_update", false);
@@ -57,7 +52,7 @@ public class History extends Notes {
 
 
             if (typeId != -1) {
-                TypeNote type = TypeNote.values()[typeId];
+                TypeNote type = values()[typeId];
 
                 Note note = null;
                 Note noteOld = null;
@@ -141,7 +136,7 @@ public class History extends Notes {
     public void finish() {
         Intent returnIntent = new Intent();
         returnIntent.putExtra("all_update", true);
-        setResult(Activity.RESULT_OK, returnIntent);
+        setResult(RESULT_OK, returnIntent);
         super.finish();
     }
 }

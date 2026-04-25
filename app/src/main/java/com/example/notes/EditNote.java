@@ -1,6 +1,4 @@
-package com.example.note;
-
-import com.example.note.TypeNote.*;
+package com.example.notes;
 
 import android.app.Activity;
 import android.content.Intent;

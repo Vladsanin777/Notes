@@ -1,57 +1,58 @@
-package com.example.note;
+package com.example.notes;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.view.ContextThemeWrapper;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class NotesHeads extends NotesBase {
+public class NotesTemplate extends NotesBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         showButtonAdd();
 
-        setLabelActivity(getString(R.string.notes));
+        setLabelActivity(getString(R.string.template));
 
         allUpdate();
     }
 
     @Override
     protected void allUpdate() {
-        int count = Note.getHeadCount();
+        int count = Note.getTemplateCount();
 
-        setOnLongClick(this::onLongClickAddNoteHead);
+        setOnLongClick(this::onLongClickAddNoteTemplate);
 
         for (int i = 0; i < count; i++) {
-            addNote(Note.getHeadNote(i));
+            addNote(Note.getTemplateNote(i));
         }
     }
 
-    public boolean onLongClickAddNoteHead(View view) {
+    public boolean onLongClickAddNoteTemplate(View view) {
         ContextThemeWrapper wrapper = new ContextThemeWrapper(this, R.style.CustomPopupMenu);
 
         PopupMenu popup = new PopupMenu(wrapper, view);
 
         popup.getMenu().add(0, 1, 0, getString(R.string.delete));
-        popup.getMenu().add(0, 2, 1, getString(R.string.template));
+        popup.getMenu().add(0, 2, 1, getString(R.string.move_to_note));
         popup.getMenu().add(0, 3, 2, getString(R.string.create));
         popup.getMenu().add(0, 4, 3, getString(R.string.history));
         popup.getMenu().add(0, 5, 4, getString(R.string.edit));
 
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
-                case 1:
+                case 1: {
                     onClickDeleteNote(view);
                     return true;
-                case 2:
-                    onClickTemplateNote(view);
+                }
+                case 2: {
+                    onClickHeadNote(view);
                     return true;
+                }
                 case 3:
                     onClickAddNote(view);
                     return true;
@@ -73,11 +74,11 @@ public class NotesHeads extends NotesBase {
 
     @Override
     protected Note createNote(String name, String content) {
-        return new Note(name, content, TypeNote.HEAD);
+        return new Note(name, content, TypeNote.TEMPLATE);
     }
 
     @Override
     protected Note createNote(String name, String content, Note parent) {
-        return new Note(name, content, TypeNote.HEAD, parent);
+        return new Note(name, content, TypeNote.TEMPLATE, parent);
     }
 }

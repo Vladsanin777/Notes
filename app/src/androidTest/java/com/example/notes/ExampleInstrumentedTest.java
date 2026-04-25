@@ -1,4 +1,4 @@
-package com.example.note;
+package com.example.notes;
 
 import android.content.Context;
 

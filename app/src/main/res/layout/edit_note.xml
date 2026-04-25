@@ -8,7 +8,7 @@
     android:fitsSystemWindows="true"
     tools:context=".EditNote">
 
-    <com.example.note.WaveView
+    <com.example.notes.WaveView
         android:id="@+id/wave_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

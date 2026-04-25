@@ -1,15 +1,8 @@
-package com.example.note;
+package com.example.notes;
 
-import static com.example.note.TypeNote.values;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.PopupMenu;
-import android.widget.TextView;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.RequiresApi;
@@ -24,7 +17,7 @@ abstract public class NotesBase extends Notes {
 
     @Override
     protected void handleNoteResult(ActivityResult result) {
-        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
             boolean isAllUpdate = data.getBooleanExtra("all_update", false);
