@@ -1,17 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="wave_front_main">#FF9B5DE5</color>
-    <color name="wave_behind_main">#FF560BAD</color>
-    <color name="wave_front_notes">#FF70E000</color>
-    <color name="wave_behind_notes">#FF38B000</color>
-    <color name="wave_front_edit_note">#FFFFB700</color>
-    <color name="wave_behind_edit_note">#FFFF8800</color>
-    <color name="wave_front_main_50">#809B5DE5</color>
-    <color name="wave_behind_main_50">#80560BAD</color>
-    <color name="wave_front_notes_50">#8070E000</color>
-    <color name="wave_behind_notes_50">#8038B000</color>
-    <color name="wave_front_edit_note_50">#80FFB700</color>
-    <color name="wave_behind_edit_note_50">#80FF8800</color>
+
 </resources>

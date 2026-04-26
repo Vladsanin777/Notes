@@ -10,9 +10,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Note">
+        android:theme="@style/Base.Theme.Notes">
         <activity
             android:name=".MainActivity"
+            android:theme="@style/Theme.MainActivity"
             android:exported="true"
             tools:ignore="NewApi">
             <intent-filter>
@@ -22,23 +23,33 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".NewNote"
+            android:theme="@style/Theme.NewNote"
+            android:exported="false"
+            tools:ignore="NewApi"/>
+        <activity
             android:name=".EditNote"
+            android:theme="@style/Theme.EditNote"
             android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".History"
+            android:theme="@style/Theme.History"
             android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".NotesDeleted"
+            android:theme="@style/Theme.NotesDeleted"
             android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".NotesTemplate"
+            android:theme="@style/Theme.NotesTemplate"
             android:exported="false"
             tools:ignore="NewApi"/>
         <activity
             android:name=".NotesHeads"
+            android:theme="@style/Theme.NotesHeads"
             android:exported="false"
             tools:ignore="NewApi"/>
     </application>

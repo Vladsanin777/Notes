@@ -2,16 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="wave_front_main">#FFFF4D6D</color>
-    <color name="wave_behind_main">#FFC9184A</color>
-    <color name="wave_front_notes">#FFB79CED</color>
-    <color name="wave_behind_notes">#FF957FEF</color>
-    <color name="wave_front_edit_note">#FFFFB703</color>
-    <color name="wave_behind_edit_note">#FFFB8500</color>
-    <color name="wave_front_main_50">#80FF4D6D</color>
-    <color name="wave_behind_main_50">#80C9184A</color>
-    <color name="wave_front_notes_50">#80B79CED</color>
-    <color name="wave_behind_notes_50">#80957FEF</color>
-    <color name="wave_front_edit_note_50">#80FFB703</color>
-    <color name="wave_behind_edit_note_50">#80FB8500</color>
+
+
+    <color name="wave_front_main">#808CCFC7</color>
+    <color name="wave_behind_main">#D840C4A8</color>
+    <color name="wave_front_notes_heads">#8092D46C</color>
+    <color name="wave_behind_notes_heads">#D830B890</color>
+    <color name="wave_front_notes_deleted">#80EF5D6E</color>
+    <color name="wave_behind_notes_deleted">#D8CA1C44</color>
+    <color name="wave_front_notes_template">#809F65E7</color>
+    <color name="wave_behind_notes_template">#D86C0ED8</color>
+    <color name="wave_front_edit_note">#80F1EF74</color>
+    <color name="wave_behind_edit_note">#D8E2C350</color>
+    <color name="wave_front_new_note">#807587F0</color>
+    <color name="wave_behind_new_note">#D85728F0</color>
+    <color name="wave_front_history">#80FFCC4D</color>
+    <color name="wave_behind_history">#D8FFA033</color>
+
+
 </resources>

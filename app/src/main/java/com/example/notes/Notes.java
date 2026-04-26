@@ -47,8 +47,7 @@ public abstract class Notes extends AppCompatActivity {
         LinearLayout noteLayout = (LinearLayout) view;
         Note note = (Note) noteLayout.getTag();
         Intent intent = new Intent(Notes.this, EditNote.class);
-        intent.putExtra("label", getString(R.string.edit_note));
-        intent.putExtra("hash_note", note.getHash());
+        intent.putExtra("hash_parent", note.getHash());
         launcher.launch(intent);
     }
 
@@ -98,7 +97,9 @@ public abstract class Notes extends AppCompatActivity {
 
     abstract protected void handleNoteResult(ActivityResult result);
 
-    abstract protected void allUpdate();
+    protected void allUpdate() {
+        clearNotes();
+    }
 
     protected void clearNotes() {
         m_notesLayout.removeAllViews();
@@ -156,11 +157,11 @@ public abstract class Notes extends AppCompatActivity {
     private LinearLayout createLinearLayoutNote(Context parent, int orientation) {
         LinearLayout layout = createLinearLayout(parent, orientation);
 
-        layout.setBackground(getDrawable(R.drawable.rounded_bg_notes));
+        layout.setBackground(getDrawable(R.drawable.rounded_bg));
 
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) layout.getLayoutParams();
 
-        params.setMargins(dpToPx(5), dpToPx(3), dpToPx(5), dpToPx(3));
+        params.setMargins(dpToPx(0), dpToPx(0), dpToPx(0), dpToPx(6));
 
         layout.setLayoutParams(params);
 

@@ -23,6 +23,8 @@ public class NotesTemplate extends NotesBase {
 
     @Override
     protected void allUpdate() {
+        super.allUpdate();
+
         int count = Note.getTemplateCount();
 
         setOnLongClick(this::onLongClickAddNoteTemplate);

@@ -23,6 +23,8 @@ public class NotesDeleted extends NotesBase {
 
     @Override
     protected void allUpdate() {
+        super.allUpdate();
+
         int count = Note.getDeletedCount();
 
         setOnLongClick(this::onLongClickAddNoteDelete);

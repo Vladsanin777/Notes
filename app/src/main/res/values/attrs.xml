@@ -13,4 +13,7 @@
         </attr>
         <attr name="showWave" format="boolean" />
     </declare-styleable>
+
+    <attr name="wave_front" format="color" />
+    <attr name="wave_behind" format="color" />
 </resources>

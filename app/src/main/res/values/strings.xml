@@ -16,9 +16,11 @@
     <string name="empty_note">"Empty note"</string>
     <string name="move_to_note">"Move to note"</string>
     <string name="cancel">"Cancel"</string>
+    <string name="back">"Back"</string>
     <string name="apply">"Apply"</string>
     <string name="name_this_note">"Name this note!!!"</string>
     <string name="context_this_note">"Context this note!!!"</string>
     <string name="plus">"+"</string>
     <string name="edit_note">"Edit note"</string>
+    <string name="not_edited">"Not edited"</string>
 </resources>

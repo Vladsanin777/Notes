@@ -41,42 +41,30 @@ public class History extends Notes {
         if (result.getResultCode() == RESULT_OK && result.getData() != null) {
             Intent data = result.getData();
 
-            boolean isAllUpdate = data.getBooleanExtra("all_update", false);
-
-            String hashNote = data.getStringExtra("hash_note");
-
-            int typeId = data.getIntExtra("type_note", -1);
-
+            String hashParent = data.getStringExtra("hash_parent");
 
             String name = data.getStringExtra("name_note");
             String content = data.getStringExtra("content_note");
 
 
-            if (typeId != -1) {
-                TypeNote type = values()[typeId];
-
-                Note note = null;
-                Note noteOld = null;
+            Note note = null;
+            Note noteOld = null;
 
 
-                if (hashNote != null) {
-                    if (name != null && content != null) {
+            if (hashParent != null) {
+                noteOld = Note.getNote(hashParent);
 
-                        noteOld = Note.getNote(hashNote);
-
-                        note = new Note(name, content, type, noteOld);
-
-                    } else {
-                        note = new Note(name, content, type);
-                    }
-
-                    m_hash = note.getHash();
-
-                    allUpdate();
-                }
+                note = new Note(name, content, TypeNote.HEAD, noteOld);
+            } else {
+                note = new Note(name, content, TypeNote.HEAD);
             }
+
+            m_hash = note.getHash();
+
+            allUpdate();
         }
     }
+
     @Override
     public void allUpdate() {
         clearNotes();

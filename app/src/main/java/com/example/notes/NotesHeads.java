@@ -23,6 +23,8 @@ public class NotesHeads extends NotesBase {
 
     @Override
     protected void allUpdate() {
+        super.allUpdate();
+
         int count = Note.getHeadCount();
 
         setOnLongClick(this::onLongClickAddNoteHead);

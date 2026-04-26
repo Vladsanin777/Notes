@@ -10,8 +10,7 @@ import androidx.annotation.RequiresApi;
 @RequiresApi(api = Build.VERSION_CODES.O)
 abstract public class NotesBase extends Notes {
     public void onClickAddNote(View view) {
-        Intent intent = new Intent(this, EditNote.class);
-        intent.putExtra("label", getString(R.string.new_note));
+        Intent intent = new Intent(this, NewNote.class);
         launcher.launch(intent);
     }
 
@@ -30,16 +29,18 @@ abstract public class NotesBase extends Notes {
 
             Note note = null;
 
-            Note noteOld = Note.getNote(hashParent);
-
-
             if (name != null || content != null) {
-                if (noteOld != null) {
-                    note = createNote(name, content, noteOld);
+                if (hashParent != null) {
+                    Note noteOld = Note.getNote(hashParent);
+                    if (noteOld != null) {
+                        note = createNote(name, content, noteOld);
 
-                    View view = getNotesLayout().findViewWithTag(noteOld);
+                        View view = getNotesLayout().findViewWithTag(noteOld);
 
-                    getNotesLayout().removeView(view);
+                        getNotesLayout().removeView(view);
+                    } else {
+                        note = createNote(name, content);
+                    }
                 } else {
                     note = createNote(name, content);
                 }

@@ -10,72 +10,58 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class EditNote extends AppCompatActivity {
-    EditText m_name;
-    EditText m_content;
-    String m_hashNote;
-
-    TypeNote m_type;
+public class EditNote extends NewNote {
+    private Note m_noteParent;
+    private String m_hashParent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.edit_note);
-
-        m_name = findViewById(R.id.name_note);
-
-        m_content = findViewById(R.id.content_note);
-
-        Intent intent = getIntent();
-        String label = intent.getStringExtra("label");
-
         TextView labelView = findViewById(R.id.text_new_note);
 
-        labelView.setText(label);
+        labelView.setText(R.string.edit_note);
 
-        m_hashNote = intent.getStringExtra("hash_note");
+        Intent intent = getIntent();
 
-        if (m_hashNote != null) {
+        m_hashParent = intent.getStringExtra("hash_parent");
 
+        if (m_hashParent != null) {
+            m_noteParent = Note.getNote(m_hashParent);
 
-            Note note = null;
+            if (m_noteParent != null) {
+                setName(m_noteParent.getName());
 
-            note = Note.getNote(m_hashNote);
-
-
-            String name = note.getName();
-
-            String content = note.getContent();
-
-            m_name.setText(name);
-            m_content.setText(content);
+                setContent(m_noteParent.getContent());
+            }
         }
     }
 
+    public boolean isEqualParnet() {
+        return getName().equals(m_noteParent.getName()) &&
+                getContent().equals(m_noteParent.getContent());
+    }
+
+    public boolean isEqualParentMessage() {
+        if (isEqualParnet()) {
+            Toast.makeText(this, getString(R.string.not_edited), Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onClickApply(View view) {
-        if (m_name == null || m_content == null) return;
-
-        String name = m_name.getText().toString();
-        String content = m_content.getText().toString();
-
-        if (name.isEmpty() && content.isEmpty()) {
-            Toast.makeText(this, getString(R.string.empty_note), Toast.LENGTH_SHORT).show();
-            return;
+        if (!isEmptyMessage() && !isEqualParentMessage()) {
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra("hash_parent", m_hashParent);
+            returnIntent.putExtra("name_note", getName());
+            returnIntent.putExtra("content_note", getContent());
+            setResult(Activity.RESULT_OK, returnIntent);
+            finish();
         }
-
-        Intent returnIntent = new Intent();
-        returnIntent.putExtra("hash_parent", m_hashNote);
-        returnIntent.putExtra("name_note", name);
-        returnIntent.putExtra("content_note", content);
-        setResult(Activity.RESULT_OK, returnIntent);
-        finish();
-    }
-
-    public void onClickBack(View view) {
-        finish();
     }
 }

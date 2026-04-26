@@ -9,12 +9,23 @@
     tools:context=".MainActivity">
 
     <com.example.notes.WaveView
-        android:id="@+id/wave_background"
+        android:id="@+id/wave_background1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:rotation="180"
+        app:amplitudeRatio="0.05"
+        app:behindWaveColor="?attr/wave_behind"
+        app:frontWaveColor="?attr/wave_front"
+        app:waveWaterLevel="0.1"
+        app:waveShapef="square"/>
+
+    <com.example.notes.WaveView
+        android:id="@+id/wave_background2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:amplitudeRatio="0.05"
-        app:behindWaveColor="@color/wave_behind_main"
-        app:frontWaveColor="@color/wave_front_main"
+        app:behindWaveColor="?attr/wave_behind"
+        app:frontWaveColor="?attr/wave_front"
         app:waveWaterLevel="0.5"
         app:waveShapef="square"/>
 
@@ -44,7 +55,7 @@
             android:id="@+id/deleted_note"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/rounded_bg_main"
+            android:background="@drawable/rounded_bg"
             android:text="@string/deleted"
             android:layout_margin="20dp"
             app:layout_constraintHorizontal_chainStyle="spread"
@@ -59,7 +70,7 @@
             android:id="@+id/template_note"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/rounded_bg_main"
+            android:background="@drawable/rounded_bg"
             android:text="@string/template"
             android:layout_margin="20dp"
             app:layout_constraintHorizontal_chainStyle="spread"
@@ -77,7 +88,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:text="@string/notes"
-        android:background="@drawable/rounded_bg_main"
+        android:background="@drawable/rounded_bg"
         android:layout_margin="20dp"
         app:layout_constraintHeight_percent="0.30"
         app:layout_constraintTop_toBottomOf="@id/center_layout"

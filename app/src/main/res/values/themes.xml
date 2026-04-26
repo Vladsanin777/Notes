@@ -1,13 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Note" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/wave_behind_main</item>
-        <item name="colorPrimaryVariant">@color/wave_front_main</item>
+    <style name="Base.Theme.Notes" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/wave_behind_edit_note</item>
-        <item name="colorSecondaryVariant">@color/wave_front_edit_note</item>
+
         <item name="colorOnSecondary">@color/black</item>
 
         <item name="android:popupMenuStyle">@style/CustomPopupMenu</item>
@@ -23,5 +18,48 @@
     <style name="CustomPopupTextAppearance" parent="TextAppearance.AppCompat.Widget.PopupMenu.Large">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Theme.Custom" parent="Base.Theme.Notes">
+        <item name="colorPrimary">?attr/wave_behind</item>
+        <item name="colorPrimaryVariant">?attr/wave_front</item>
+
+        <item name="colorSecondary">?attr/wave_behind</item>
+        <item name="colorSecondaryVariant">?attr/wave_front</item>
+    </style>
+
+    <style name="Theme.MainActivity" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_main</item>
+        <item name="wave_behind">@color/wave_behind_main</item>
+    </style>
+
+    <style name="Theme.History" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_history</item>
+        <item name="wave_behind">@color/wave_behind_history</item>
+    </style>
+
+    <style name="Theme.NotesDeleted" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_notes_deleted</item>
+        <item name="wave_behind">@color/wave_behind_notes_deleted</item>
+    </style>
+
+    <style name="Theme.NotesHeads" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_notes_heads</item>
+        <item name="wave_behind">@color/wave_behind_notes_heads</item>
+    </style>
+
+    <style name="Theme.NotesTemplate" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_notes_template</item>
+        <item name="wave_behind">@color/wave_behind_notes_template</item>
+    </style>
+
+    <style name="Theme.EditNote" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_edit_note</item>
+        <item name="wave_behind">@color/wave_behind_edit_note</item>
+    </style>
+
+    <style name="Theme.NewNote" parent="Theme.Custom">
+        <item name="wave_front">@color/wave_front_new_note</item>
+        <item name="wave_behind">@color/wave_behind_new_note</item>
     </style>
 </resources>
